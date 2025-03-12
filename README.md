@@ -1,6 +1,12 @@
 # ThingsPanel MCP
 
-MCP (Model Control Plane) server for [ThingsPanel](http://demo.thingspanel.cn/) IoT platform.
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Python Version](https://img.shields.io/pypi/pyversions/thingspanel-mcp.svg)](https://pypi.org/project/thingspanel-mcp/)
+[![PyPI version](https://badge.fury.io/py/thingspanel-mcp.svg)](https://badge.fury.io/py/thingspanel-mcp)
+
+MCP (Model Context Protocol) server for [ThingsPanel](http://thingspanel.io/) IoT platform.
+
+[English](README.md) | [中文](README_CN.md)
 
 This MCP server integrates ThingsPanel IoT platform with AI models like Claude, GPT, and others that support the Model Context Protocol. It provides a standardized way for AI models to:
 
@@ -97,7 +103,7 @@ pip install -e .
 
 Configuration is done via environment variables:
 
-- `THINGSPANEL_URL`: ThingsPanel API URL (default: http://demo.thingspanel.cn/)
+- `THINGSPANEL_URL`: ThingsPanel API URL (default: http://thingspanel.io/)
 - `THINGSPANEL_API_KEY`: Your ThingsPanel API key
 
 ### Setting up your API key
@@ -119,13 +125,13 @@ You can set your API key in several ways:
 3. **In your .env file**:
    Create a `.env` file in the project directory:
    ```
-   THINGSPANEL_URL=http://demo.thingspanel.cn/
+   THINGSPANEL_URL=http://thingspanel.io/
    THINGSPANEL_API_KEY=your_api_key
    ```
 
 To verify your API key works correctly, you can test it with a direct API call:
 ```bash
-curl -H "x-api-key: your_api_key" http://demo.thingspanel.cn/api/v1/device/group/tree
+curl -H "x-api-key: your_api_key" http://thingspanel.io/api/v1/device/group/tree
 ```
 
 ## Usage

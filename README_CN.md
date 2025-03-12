@@ -1,6 +1,12 @@
 # ThingsPanel MCP
 
-[ThingsPanel](http://demo.thingspanel.cn/) 物联网平台的MCP（Model Control Plane）服务器。
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Python Version](https://img.shields.io/pypi/pyversions/thingspanel-mcp.svg)](https://pypi.org/project/thingspanel-mcp/)
+[![PyPI version](https://badge.fury.io/py/thingspanel-mcp.svg)](https://badge.fury.io/py/thingspanel-mcp)
+
+[ThingsPanel](http://thingspanel.io/) 物联网平台的MCP（Model Context Protocol）服务器。
+
+[English](README.md) | [中文](README_CN.md)
 
 这个MCP服务器将ThingsPanel物联网平台与支持模型上下文协议的AI模型（如Claude、GPT等）集成在一起。它为AI模型提供了一种标准化的方式来：
 
@@ -97,7 +103,7 @@ pip install -e .
 
 通过环境变量进行配置：
 
-- `THINGSPANEL_URL`：ThingsPanel API URL（默认值：http://demo.thingspanel.cn/）
+- `THINGSPANEL_URL`：ThingsPanel API URL（默认值：http://thingspanel.io/）
 - `THINGSPANEL_API_KEY`：您的ThingsPanel API密钥
 
 ### 设置API密钥
@@ -119,13 +125,13 @@ API密钥必须正确设置才能与ThingsPanel平台进行身份验证。Things
 3. **在.env文件中**：
    在项目目录中创建一个`.env`文件：
    ```
-   THINGSPANEL_URL=http://demo.thingspanel.cn/
+   THINGSPANEL_URL=http://thingspanel.io/
    THINGSPANEL_API_KEY=您的API密钥
    ```
 
 要验证您的API密钥是否正常工作，可以使用直接API调用进行测试：
 ```bash
-curl -H "x-api-key: 您的API密钥" http://demo.thingspanel.cn/api/v1/device/group/tree
+curl -H "x-api-key: 您的API密钥" http://thingspanel.io/api/v1/device/group/tree
 ```
 
 ## 使用方法
