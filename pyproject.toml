@@ -1,0 +1,63 @@
+[project]
+name = "thingspanel-mcp"
+version = "0.1.0"
+description = "MCP server for ThingsPanel IoT platform"
+readme = "README.md"
+authors = [
+    { name = "ThingsPanel", email = "info@thingspanel.com" }
+]
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.28.1",
+    "mcp[cli]==1.2.1",
+    "pydantic-settings>=2.7.0",
+    "pydantic>=2.10.4",
+    "typer>=0.15.1",
+]
+
+[project.scripts]
+thingspanel-mcp = "thingspanel_mcp.cli:app"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.2",
+]
+lint = [
+    "ruff>=0.8.5",
+]
+
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 88
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+] 
