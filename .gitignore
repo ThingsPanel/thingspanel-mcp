@@ -1,44 +1,65 @@
-# Python
+# Python相关的忽略文件
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# Virtual Environment
+# 虚拟环境
+.venv/
 venv/
 env/
-ENV/
 
-# IDE
-.idea/
+# 发布和打包
+dist/
+build/
+*.egg-info/
+
+# 集成开发环境特定文件
 .vscode/
+.idea/
 *.swp
 *.swo
 
-# OS
+# 日志文件
+*.log
+
+# 环境配置文件（包含敏感信息）
+.env
+*.env
+.env.local
+.env.development
+.env.production
+
+# 包含敏感数据的配置文件
+config.json
+config.yaml
+
+# Jupyter笔记本
+.ipynb_checkpoints
+
+# 操作系统生成文件
 .DS_Store
 Thumbs.db
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# 备份文件
+*.bak
+*.backup
 
-# Logs
-*.log 
+# 密钥和敏感文件
+*.pem
+*.key
+*.crt
+
+# 依赖目录
+node_modules/
+
+# 临时文件
+*.tmp
+*.temp
+
+# 测试覆盖率和测试相关
+.coverage
+htmlcov/
+.pytest_cache/
+
+# MCP特定文件
+*.mcp.log

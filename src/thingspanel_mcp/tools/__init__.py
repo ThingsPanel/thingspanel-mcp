@@ -1,18 +1,6 @@
-from mcp.server import FastMCP
+# src/thingspanel_mcp/tools/__init__.py
+from . import device_tools
+from . import telemetry_tools
+from . import dashboard_tools
 
-from . import device, product, data, alarm
-from ..settings import thingspanel_settings
-
-
-def add_tools(mcp: FastMCP):
-    """
-    Add all enabled tools to the MCP server.
-    """
-    if thingspanel_settings.tools.device.enabled:
-        device.add_tools(mcp)
-    if thingspanel_settings.tools.product.enabled:
-        product.add_tools(mcp)
-    if thingspanel_settings.tools.data.enabled:
-        data.add_tools(mcp)
-    if thingspanel_settings.tools.alarm.enabled:
-        alarm.add_tools(mcp) 
+__all__ = ['device_tools', 'telemetry_tools', 'dashboard_tools']
