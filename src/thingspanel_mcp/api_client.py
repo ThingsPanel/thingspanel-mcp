@@ -103,11 +103,17 @@ class ThingsPanelClient:
                 
         return await self._request("GET", "/api/v1/telemetry/datas/statistic", params=params)
     
-    async def publish_telemetry(self, device_id: str, value: Dict[str, Any]) -> Dict[str, Any]:
+    async def publish_telemetry(self, device_id: str, value: Union[Dict[str, Any], str]) -> Dict[str, Any]:
         """下发遥测数据"""
+        # 确保值是正确的格式（JSON字符串）
+        if isinstance(value, dict):
+            value_str = json.dumps(value)
+        else:
+            value_str = value
+        
         data = {
             "device_id": device_id,
-            "value": value
+            "value": value_str
         }
         return await self._request("POST", "/api/v1/telemetry/datas/pub", json_data=data)
     
@@ -156,3 +162,60 @@ class ThingsPanelClient:
     async def get_device_trend(self) -> Dict[str, Any]:
         """获取设备在线离线趋势"""
         return await self._request("GET", "/api/v1/board/trend")
+
+    async def get_device_model_sources(self, device_template_id: str) -> Dict[str, Any]:
+        """获取设备模板的数据源列表（遥测、属性等）"""
+        params = {
+            "id": device_template_id
+        }
+        return await self._request("GET", "/api/v1/device/model/source/at/list", params=params)
+
+    async def publish_attributes(self, device_id: str, value: Union[Dict[str, Any], str]) -> Dict[str, Any]:
+        """设置设备属性"""
+        # 确保值是正确的格式（JSON字符串）
+        if isinstance(value, dict):
+            value_str = json.dumps(value)
+        else:
+            value_str = value
+        
+        data = {
+            "device_id": device_id,
+            "value": value_str
+        }
+        return await self._request("POST", "/api/v1/attribute/datas/pub", json_data=data)
+
+    async def publish_command(self, device_id: str, value: Union[Dict[str, Any], str], identifier: str) -> Dict[str, Any]:
+        """下发设备命令"""
+        # 确保值是正确的格式（JSON字符串）
+        if isinstance(value, dict):
+            value_str = json.dumps(value)
+        else:
+            value_str = value
+        
+        data = {
+            "device_id": device_id,
+            "value": value_str,
+            "Identify": identifier
+        }
+        return await self._request("POST", "/api/v1/command/datas/pub", json_data=data)
+
+    async def get_device_model_commands(self, device_template_id: str, page: int = 1, page_size: int = 100) -> Dict[str, Any]:
+        """获取设备模板的命令详情"""
+        params = {
+            "page": page,
+            "page_size": page_size,
+            "device_template_id": device_template_id
+        }
+        return await self._request("GET", "/api/v1/device/model/commands", params=params)
+
+    async def get_device_model_by_type(self, device_template_id: str, model_type: str, page: int = 1, page_size: int = 100) -> Dict[str, Any]:
+        """获取设备模板的指定类型物模型信息"""
+        if model_type not in ["telemetry", "attributes", "commands", "events"]:
+            raise ValueError(f"不支持的物模型类型: {model_type}")
+        
+        params = {
+            "page": page,
+            "page_size": page_size,
+            "device_template_id": device_template_id
+        }
+        return await self._request("GET", f"/api/v1/device/model/{model_type}", params=params)

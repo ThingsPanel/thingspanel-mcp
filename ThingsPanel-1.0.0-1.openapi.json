@@ -1,0 +1,1140 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "ThingsPanel-1.0.0",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "属性数据"
+    }
+  ],
+  "paths": {
+    "/api/v1/device/model/telemetry": {
+      "get": {
+        "summary": "分页查询遥测数据✅（属性/命令/事件，参数一致，仅URI不一致）",
+        "deprecated": false,
+        "description": "其他url：attributes events commands",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "device_template_id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-token",
+            "in": "header",
+            "description": "",
+            "example": "{{x-token}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "device_template_id": {
+                                "type": "string"
+                              },
+                              "data_name": {
+                                "type": "string"
+                              },
+                              "data_identifier": {
+                                "type": "string"
+                              },
+                              "read_write_flag": {
+                                "type": "string"
+                              },
+                              "data_type": {
+                                "type": "string"
+                              },
+                              "unit": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "additional_info": {
+                                "type": "string"
+                              },
+                              "created_at": {
+                                "type": "string"
+                              },
+                              "updated_at": {
+                                "type": "string"
+                              },
+                              "remark": {
+                                "type": "string"
+                              },
+                              "tenant_id": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "device_template_id",
+                              "data_name",
+                              "data_identifier",
+                              "read_write_flag",
+                              "data_type",
+                              "unit",
+                              "description",
+                              "additional_info",
+                              "created_at",
+                              "updated_at",
+                              "remark",
+                              "tenant_id"
+                            ]
+                          }
+                        },
+                        "total": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "list",
+                        "total"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "code": 200,
+                      "message": "Get Device Model Telemetry By Page successfully",
+                      "data": {
+                        "list": [
+                          {
+                            "id": "c9e89cba-f275-c090-8a88-993640058382",
+                            "device_template_id": "3e931a8c-59d8-5488-2174-2d11294bc759",
+                            "data_name": "nam",
+                            "data_identifier": "asdfasd",
+                            "read_write_flag": "R",
+                            "data_type": "String",
+                            "unit": "c",
+                            "description": "{}",
+                            "additional_info": "{}",
+                            "created_at": "2024-03-19T14:27:57.035042Z",
+                            "updated_at": "2024-03-19T14:27:57.035042Z",
+                            "remark": "123",
+                            "tenant_id": "2f4306df"
+                          },
+                          {
+                            "id": "535c1505-2327-599e-131b-5b826a437b4a",
+                            "device_template_id": "3e931a8c-59d8-5488-2174-2d11294bc759",
+                            "data_name": "nam",
+                            "data_identifier": "asdfasd",
+                            "read_write_flag": "R",
+                            "data_type": "String",
+                            "unit": "c",
+                            "description": "{}",
+                            "additional_info": "{}",
+                            "created_at": "2024-03-19T14:31:29.970264Z",
+                            "updated_at": "2024-03-19T14:31:29.970264Z",
+                            "remark": "123",
+                            "tenant_id": "2f4306df"
+                          }
+                        ],
+                        "total": 3
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/device/model/commands": {
+      "get": {
+        "summary": "分页查询遥测数据✅（属性/命令/事件，参数一致，仅URI不一致）",
+        "deprecated": false,
+        "description": "其他url：attributes events commands",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "device_template_id",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-token",
+            "in": "header",
+            "description": "",
+            "example": "{{x-token}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "device_template_id": {
+                                "type": "string"
+                              },
+                              "data_name": {
+                                "type": "string"
+                              },
+                              "data_identifier": {
+                                "type": "string"
+                              },
+                              "read_write_flag": {
+                                "type": "string"
+                              },
+                              "data_type": {
+                                "type": "string"
+                              },
+                              "unit": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "additional_info": {
+                                "type": "string"
+                              },
+                              "created_at": {
+                                "type": "string"
+                              },
+                              "updated_at": {
+                                "type": "string"
+                              },
+                              "remark": {
+                                "type": "string"
+                              },
+                              "tenant_id": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "device_template_id",
+                              "data_name",
+                              "data_identifier",
+                              "read_write_flag",
+                              "data_type",
+                              "unit",
+                              "description",
+                              "additional_info",
+                              "created_at",
+                              "updated_at",
+                              "remark",
+                              "tenant_id"
+                            ]
+                          }
+                        },
+                        "total": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "list",
+                        "total"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "description": "",
+                    "value": {
+                      "code": 200,
+                      "message": "操作成功",
+                      "data": {
+                        "list": [
+                          {
+                            "id": "8083fb03-e729-4a67-2939-218ec62fb088",
+                            "device_template_id": "c0dcff67-7560-572a-addf-469b92728f25",
+                            "data_name": "重启",
+                            "data_identifier": "reset",
+                            "params": "[]",
+                            "description": "",
+                            "additional_info": null,
+                            "created_at": "2025-03-20T11:04:27.365682+08:00",
+                            "updated_at": "2025-03-20T11:04:27.365682+08:00",
+                            "remark": null,
+                            "tenant_id": "9c3f8a70"
+                          }
+                        ],
+                        "total": 1
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/device/model/source/at/list": {
+      "get": {
+        "summary": "模板数据源指标查询（遥测、属性）✅",
+        "deprecated": false,
+        "description": "其他url：attributes events commands",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "device_template_id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-token",
+            "in": "header",
+            "description": "",
+            "example": "{{x-token}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "data_source_type": {
+                            "type": "string",
+                            "description": "设备资源类型"
+                          },
+                          "options": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string",
+                                  "description": "标识符"
+                                },
+                                "label": {
+                                  "type": "string",
+                                  "description": "数据名称",
+                                  "nullable": true
+                                },
+                                "data_type": {
+                                  "type": "string",
+                                  "description": "字段类型",
+                                  "nullable": true
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "label",
+                                "data_type"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "data_source_type",
+                          "options"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "code": 200,
+                      "message": "SUCCESS",
+                      "data": [
+                        {
+                          "data_source_type": "telemetry",
+                          "options": [
+                            {
+                              "key": "yanhao",
+                              "label": null,
+                              "data_type": null
+                            },
+                            {
+                              "key": "yanhao2",
+                              "label": null,
+                              "data_type": null
+                            },
+                            {
+                              "key": "yanhao2",
+                              "label": null,
+                              "data_type": null
+                            },
+                            {
+                              "key": "yanhao2",
+                              "label": null,
+                              "data_type": null
+                            },
+                            {
+                              "key": "yanhao2",
+                              "label": null,
+                              "data_type": null
+                            },
+                            {
+                              "key": "yanhao2",
+                              "label": null,
+                              "data_type": null
+                            },
+                            {
+                              "key": "yanhao2",
+                              "label": null,
+                              "data_type": null
+                            },
+                            {
+                              "key": "yanhao2",
+                              "label": null,
+                              "data_type": null
+                            },
+                            {
+                              "key": "yanhao2",
+                              "label": null,
+                              "data_type": null
+                            },
+                            {
+                              "key": "yanhao2",
+                              "label": null,
+                              "data_type": null
+                            },
+                            {
+                              "key": "yanhao2",
+                              "label": null,
+                              "data_type": null
+                            },
+                            {
+                              "key": "asdfasd",
+                              "label": "nam",
+                              "data_type": "String"
+                            },
+                            {
+                              "key": "asdfasd",
+                              "label": "nam",
+                              "data_type": "String"
+                            }
+                          ]
+                        },
+                        {
+                          "data_source_type": "attributes",
+                          "options": [
+                            {
+                              "key": "temp",
+                              "label": "温度",
+                              "data_type": "string"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/device/template/chart": {
+      "get": {
+        "summary": "根据设备id获取设备模板详情",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "query",
+            "description": "设备id",
+            "required": true,
+            "example": "03c579d5-2282-e846-7782-61b18cd59599",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-token",
+            "in": "header",
+            "description": "",
+            "example": "{{x-token}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "app_chart_config": {
+                          "type": "null",
+                          "title": "app图表配置"
+                        },
+                        "author": {
+                          "type": "string"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "flag": {
+                          "type": "integer"
+                        },
+                        "id": {
+                          "type": "string",
+                          "title": "设备模板id"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string",
+                          "title": "模板名称"
+                        },
+                        "path": {
+                          "type": "string",
+                          "title": "模板图片路径"
+                        },
+                        "remark": {
+                          "type": "null"
+                        },
+                        "tenant_id": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
+                        },
+                        "web_chart_config": {
+                          "type": "null",
+                          "title": "web图表配置"
+                        }
+                      },
+                      "required": [
+                        "app_chart_config",
+                        "author",
+                        "created_at",
+                        "description",
+                        "flag",
+                        "id",
+                        "label",
+                        "name",
+                        "path",
+                        "remark",
+                        "tenant_id",
+                        "updated_at",
+                        "version",
+                        "web_chart_config"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "code": 200,
+                      "message": "Get device template successfully",
+                      "data": {
+                        "app_chart_config": null,
+                        "author": "r",
+                        "created_at": "2024-03-19T14:13:32.691982Z",
+                        "description": "区九务图界八了据型响史比满。转选单强部走铁复六矿际压称老选变。代近酸比技得重表专龙白取采何今。增华任么斯程研外拉南什她分除量性。",
+                        "flag": 1,
+                        "id": "93535d53-0b88-74ca-a3c4-eef9b173b03c",
+                        "label": "in veniam laborum consectetur labore",
+                        "name": "路器切必",
+                        "path": "dolor reprehenderit labore qui fugiat",
+                        "remark": null,
+                        "tenant_id": "2f4306df",
+                        "updated_at": "2024-03-19T14:13:32.691982Z",
+                        "version": "anim tempor",
+                        "web_chart_config": null
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/device_config/{id}": {
+      "get": {
+        "summary": "获取设备配置详情页",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "设备配置id",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-token",
+            "in": "header",
+            "description": "",
+            "example": "{{x-token}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "device_template_id": {
+                          "type": "null"
+                        },
+                        "device_type": {
+                          "type": "string"
+                        },
+                        "protocol_type": {
+                          "type": "string"
+                        },
+                        "voucher_type": {
+                          "type": "string"
+                        },
+                        "protocol_config": {
+                          "type": "string"
+                        },
+                        "device_conn_type": {
+                          "type": "null"
+                        },
+                        "additional_info": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "tenant_id": {
+                          "type": "string"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        },
+                        "remark": {
+                          "type": "null"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "device_template_id",
+                        "device_type",
+                        "protocol_type",
+                        "voucher_type",
+                        "protocol_config",
+                        "device_conn_type",
+                        "additional_info",
+                        "description",
+                        "tenant_id",
+                        "created_at",
+                        "updated_at",
+                        "remark"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "code": 200,
+                      "message": "SUCCESS",
+                      "data": {
+                        "id": "989bdfbd-af4c-8d83-4c3f-ac8b6e1a45b0",
+                        "name": "xxxx",
+                        "device_template_id": null,
+                        "device_type": "1",
+                        "protocol_type": "MQTT",
+                        "voucher_type": "xxxx",
+                        "protocol_config": "{\"aa\":1}",
+                        "device_conn_type": null,
+                        "additional_info": "{}",
+                        "description": "xxxxxxxxxxxxxxxxxx",
+                        "tenant_id": "2f4306df",
+                        "created_at": "2024-03-25T11:40:29.48744Z",
+                        "updated_at": "2024-03-25T11:40:29.48744Z",
+                        "remark": null
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/telemetry/datas/pub": {
+      "post": {
+        "summary": "下发遥测✅",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "x-token",
+            "in": "header",
+            "description": "",
+            "example": "{{x-token}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "device_id": {
+                    "type": "string",
+                    "description": "设备id"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "device_id",
+                  "value"
+                ]
+              },
+              "examples": {
+                "1": {
+                  "value": {
+                    "device_id": "ca33926c-5ee5-3e9f-147e-94e188fde65b",
+                    "value": {
+                      "switch": false
+                    }
+                  },
+                  "description": ""
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "code": 200,
+                      "message": "Success"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/attribute/datas/pub": {
+      "post": {
+        "summary": "下发属性✅ ",
+        "deprecated": false,
+        "description": "",
+        "tags": [
+          "属性数据"
+        ],
+        "parameters": [
+          {
+            "name": "x-token",
+            "in": "header",
+            "description": "",
+            "example": "{{x-token}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "device_id": {
+                    "type": "string",
+                    "description": "设备id"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "device_id",
+                  "value"
+                ]
+              },
+              "examples": {
+                "1": {
+                  "value": {
+                    "device_id": "ca33926c-5ee5-3e9f-147e-94e188fde65b",
+                    "value": "{}"
+                  },
+                  "description": ""
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "code": 200,
+                      "message": "Success"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/command/datas/pub": {
+      "post": {
+        "summary": "下发命令✅",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "x-token",
+            "in": "header",
+            "description": "",
+            "example": "{{x-token}}",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "device_id": {
+                    "type": "string",
+                    "description": "设备id"
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "JSON"
+                  },
+                  "Identify": {
+                    "type": "string",
+                    "description": "命令标识符"
+                  }
+                },
+                "required": [
+                  "device_id",
+                  "Identify"
+                ]
+              },
+              "examples": {
+                "1": {
+                  "value": {
+                    "device_id": "84fd5c8f-9c6c-ea57-a7b7-d32dce6b65af",
+                    "value": "{\"switch\": false}"
+                  },
+                  "description": ""
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "code": 200,
+                      "message": "Success"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}

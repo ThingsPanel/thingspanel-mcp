@@ -157,23 +157,53 @@ def device_control_prompt() -> List[Dict[str, Any]]:
 
 您可以通过以下方式控制ThingsPanel平台上的设备：
 
-## 发送开关命令
-- "打开设备{device_id}的开关"
-- "关闭设备{device_name}的电源"
-- "重启设备{device_id}"
+## 步骤1: 查询物模型（必须）
+在发送控制命令前，必须先查询设备的物模型信息，以确保了解可用的控制点和参数：
+- "获取设备{device_id}的物模型信息"
+- "查看设备{device_name}的物模型"
 
-## 设置参数
-- "设置设备{device_id}的温度为25℃"
-- "将设备{device_name}的湿度阈值调整为60%"
-- "修改设备{device_id}的运行模式为自动"
+物模型包含设备支持的遥测点、属性和命令，只有符合物模型的控制指令才能被设备正确接收和执行。
 
-## 执行自定义命令
-- "向设备{device_id}发送自定义命令：{command_json}"
-- "执行设备{device_name}的固件更新"
+## 步骤2: 基于物模型发送控制指令
+根据物模型信息，选择合适的控制方式：
 
-例如，发送JSON命令：
-向设备abc123发送命令: {"method":"DEVICE_CONTROL","params":{"switch":true}}
-请注意，设备控制命令的具体参数取决于您的设备类型和配置。请确保您的命令格式正确，并且设备支持相应的控制功能。"""
+### 遥测控制
+用于控制设备的实时数据，基于物模型中的遥测点：
+- "控制设备{device_id}的参数"
+- "设置设备{device_id}的属性值"
+
+**具体命令示例:**
+- `control_device_telemetry(device_id="abc123", control_data={"parameter_name": value})`
+- `control_device_telemetry(device_id="abc123", control_data="parameter_name=value")`
+
+## 属性设置
+用于配置设备的静态属性，适用于任何类型的设备属性：
+- "设置设备{device_id}的属性"
+- "配置设备{device_id}的参数"
+
+**具体命令示例:**
+- `set_device_attributes(device_id="abc123", attribute_data={"attribute_name": value})`
+
+## 命令下发
+用于执行特定功能的命令，适用于任何类型的命令：
+- "向设备{device_id}发送命令"
+- "执行设备{device_id}的操作"
+
+**具体命令示例:**
+- `send_device_command(device_id="abc123", command_data={"method": "CommandName", "params": {"param": value}})`
+
+## 推荐使用的标准控制流程
+
+为了确保命令符合设备物模型，推荐使用以下辅助函数，它会自动先查询物模型再发送命令：
+
+## 使用示例
+1. 先获取物模型：
+   "获取设备abc123的物模型信息"
+
+2. 根据物模型发送控制命令：
+   "控制设备abc123，设置temperature=25"
+
+请确保您有权限控制目标设备，并且所发送的命令符合设备的物模型规范。"""
             }
         }
     ]

@@ -161,29 +161,3 @@ async def get_telemetry_history(
     except Exception as e:
         logger.error(f"获取遥测历史数据出错: {str(e)}")
         return f"获取遥测历史数据时发生错误: {str(e)}"
-
-async def publish_device_command(device_id: str, command_data: Union[Dict[str, Any], str]) -> str:
-    """
-    向设备下发命令
-    """
-    client = ThingsPanelClient()
-    try:
-        # 如果输入是字符串，尝试解析为JSON
-        if isinstance(command_data, str):
-            try:
-                command_json = json.loads(command_data)
-            except json.JSONDecodeError:
-                return f"命令数据格式错误，请提供有效的JSON格式"
-        else:
-            command_json = command_data
-        
-        result = await client.publish_telemetry(device_id, command_json)
-        
-        if result.get("code") != 200:
-            return f"下发命令失败：{result.get('message', '未知错误')}"
-        
-        return f"成功向设备 {device_id} 下发命令"
-    
-    except Exception as e:
-        logger.error(f"下发命令出错: {str(e)}")
-        return f"下发命令时发生错误: {str(e)}"

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional, Union
 from mcp.server.fastmcp import FastMCP, Context
 from .config import config
-from .tools import device_tools, telemetry_tools, dashboard_tools
+from .tools import device_tools, telemetry_tools, dashboard_tools, control_tools
 from .prompts import common_prompts
 
 logger = logging.getLogger(__name__)
@@ -30,11 +30,17 @@ class ThingsPanelServer:
         self.server.tool()(telemetry_tools.get_device_telemetry)
         self.server.tool()(telemetry_tools.get_telemetry_by_key)
         self.server.tool()(telemetry_tools.get_telemetry_history)
-        self.server.tool()(telemetry_tools.publish_device_command)
         
         # 看板相关工具
         self.server.tool()(dashboard_tools.get_tenant_summary)
         self.server.tool()(dashboard_tools.get_device_trend_report)
+        
+        # 设备控制相关工具
+        self.server.tool()(control_tools.get_device_model_info)
+        self.server.tool()(control_tools.control_device_telemetry)
+        self.server.tool()(control_tools.set_device_attributes)
+        self.server.tool()(control_tools.send_device_command)
+        self.server.tool()(control_tools.control_device_with_model_check)
         
     def _setup_prompts(self):
         """设置预定义提示"""
