@@ -65,7 +65,7 @@ pip install thingspanel-mcp
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/thingspanel-mcp.git
+git clone https://github.com/ThingsPanel/thingspanel-mcp.git
 
 # Navigate to project directory
 cd thingspanel-mcp

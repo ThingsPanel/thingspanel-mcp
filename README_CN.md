@@ -69,7 +69,7 @@ pip install thingspanel-mcp
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/thingspanel-mcp.git
+git clone https://github.com/ThingsPanel/thingspanel-mcp.git
 
 # 进入项目目录
 cd thingspanel-mcp

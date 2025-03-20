@@ -12,7 +12,7 @@ setup(
     description="ThingsPanel MCP服务器，用于通过自然语言与ThingsPanel平台交互",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/thingspanel-mcp",
+    url="https://github.com/ThingsPanel/thingspanel-mcp",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
