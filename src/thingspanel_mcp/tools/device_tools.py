@@ -7,7 +7,8 @@ logger = logging.getLogger(__name__)
 
 async def list_devices(search: Optional[str] = None, page: int = 1, page_size: int = 10) -> str:
     """
-    列出设备列表，可以通过名称或编号进行搜索
+    列出设备列表，可以通过名称或编号进行搜索（区分大小写）
+    注意：对于英文搜索，最多尝试三种种组合，全大写或全小写或首字母大写，不要多次尝试，没搜索到就及时反馈用户
     """
     client = ThingsPanelClient()
     try:

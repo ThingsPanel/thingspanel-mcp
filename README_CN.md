@@ -109,7 +109,9 @@ source ~/.bashrc  # 或 source ~/.zshrc
 
 ## 🖥️ Claude 桌面版集成
 
-在您的 Claude 桌面配置文件 (`claude_desktop_config.json`) 中添加以下内容：
+在您的 Claude 桌面配置文件 (`claude_desktop_config.json`) 中添加以下内容。根据您的操作系统选择合适的配置：
+
+### Windows 配置示例
 
 ```json
 {
@@ -124,6 +126,30 @@ source ~/.bashrc  # 或 source ~/.zshrc
   }
 }
 ```
+
+### macOS 配置示例
+
+```json
+{
+  "mcpServers": {
+    "thingspanel": {
+      "command": "/Library/Frameworks/Python.framework/Versions/3.12/bin/thingspanel-mcp",
+      "args": [],
+      "env": {
+        "THINGSPANEL_API_KEY": "您的API密钥",
+        "THINGSPANEL_BASE_URL": "您的基础URL"
+      }
+    }
+  }
+}
+```
+
+💡 提示：
+
+- macOS 用户需要使用 Python 可执行文件的完整路径
+- 可以通过运行 `which thingspanel-mcp` 命令找到具体路径
+- 建议使用环境变量方式配置敏感信息，避免直接暴露在配置文件中
+- 请根据您的 Python 安装位置调整路径
 
 ## 🤔 交互示例
 

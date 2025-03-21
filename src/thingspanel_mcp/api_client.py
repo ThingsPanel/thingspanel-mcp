@@ -43,7 +43,18 @@ class ThingsPanelClient:
     
     # 设备相关方法
     async def get_devices(self, page: int = 1, page_size: int = 10, search: str = None) -> Dict[str, Any]:
-        """获取设备列表"""
+        """
+        获取设备列表
+        
+        参数:
+            page: 页码，默认1
+            page_size: 每页数量，默认10
+            search: 搜索关键字（区分大小写）
+        
+        注意：
+            1. 搜索严格区分大小写
+            2. 对于英文搜索，最多尝试三种种组合，全大写或全小写或首字母大写
+        """
         params = {
             "page": page,
             "page_size": page_size
