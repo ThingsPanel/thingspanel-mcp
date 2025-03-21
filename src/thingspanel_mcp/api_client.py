@@ -49,11 +49,7 @@ class ThingsPanelClient:
         参数:
             page: 页码，默认1
             page_size: 每页数量，默认10
-            search: 搜索关键字（区分大小写）
-        
-        注意：
-            1. 搜索严格区分大小写
-            2. 对于英文搜索，最多尝试三种种组合，全大写或全小写或首字母大写
+            search: 搜索关键字
         """
         params = {
             "page": page,
