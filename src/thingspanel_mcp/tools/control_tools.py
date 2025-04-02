@@ -10,7 +10,7 @@ async def get_device_model_info(device_id: str, model_type: str = "all") -> str:
     获取设备物模型信息
     
     参数:
-        device_id: 设备ID
+        device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
         model_type: 物模型类型，可选值：'all'、'telemetry'、'attributes'、'commands'、'events'
     
     返回:
@@ -159,7 +159,7 @@ async def control_device_telemetry(device_id: str, control_data: Union[Dict[str,
     发送遥测数据控制设备 - 通用接口，可用于控制任何类型的遥测数据
     
     参数:
-        device_id: 设备ID
+        device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
         control_data: 控制数据，格式如 {"temperature": 28.5, "light": 2000, "switch": true}
     """
     client = ThingsPanelClient()
@@ -216,7 +216,7 @@ async def set_device_attributes(device_id: str, attribute_data: Union[Dict[str, 
     设置设备属性 - 通用接口，可用于设置任何类型的设备属性
     
     参数:
-        device_id: 设备ID
+        device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
         attribute_data: 属性数据，格式如 {"ip": "127.0.0.1", "mac": "xx:xx:xx:xx:xx:xx", "port": 1883}
     """
     client = ThingsPanelClient()
@@ -259,7 +259,7 @@ async def send_device_command(device_id: str, command_data: Union[Dict[str, Any]
     向设备发送命令
     
     参数:
-        device_id: 设备ID
+        device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
         command_data: 命令数据，格式如 {"method": "ReSet", "params": {"switch": 1, "light": "close"}}
         command_identifier: 命令标识符，如果提供则使用此标识符
     
@@ -318,7 +318,7 @@ async def control_device_with_model_check(device_id: str, command_type: str, com
     先查询物模型，然后再发送控制命令的标准流程
     
     参数:
-        device_id: 设备ID
+        device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
         command_type: 命令类型，可选值：'telemetry'、'attribute'、'command'
         command_data: 命令数据
     

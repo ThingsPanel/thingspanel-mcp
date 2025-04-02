@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 async def list_devices(search: Optional[str] = None, page: int = 1, page_size: int = 10) -> str:
     """
-    列出设备列表，可以通过名称或编号进行搜索
+    可以根据用户说出来的设备名称或设备编号进行模糊搜索，获取设备ID、设备名称、设备编号、在线状态、激活状态、创建时间
     注意：支持大小写不敏感的模糊搜索，不要多次尝试，没搜索到就及时反馈用户
     """
     client = ThingsPanelClient()
@@ -36,7 +36,8 @@ async def list_devices(search: Optional[str] = None, page: int = 1, page_size: i
                 f"设备ID: {device.get('id')}\n"
                 f"设备名称: {device.get('name')}\n"
                 f"设备编号: {device.get('device_number')}\n"
-                f"配置类型: {device.get('device_config_name', '未设置')}\n"
+                f"设备模板类型: {device.get('device_config_name', '未设置')}\n"
+                f"配置类型: {device.get('access_way', '未知')}\n"
                 f"在线状态: {status}\n"
                 f"激活状态: {activate_status}\n"
                 f"创建时间: {device.get('created_at', '未知')}\n"
@@ -51,7 +52,10 @@ async def list_devices(search: Optional[str] = None, page: int = 1, page_size: i
 
 async def get_device_detail(device_id: str) -> str:
     """
-    获取设备详细信息
+    根据设备ID获取设备详细信息
+    
+    参数:
+    device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
     """
     client = ThingsPanelClient()
     try:
@@ -100,6 +104,9 @@ async def get_device_detail(device_id: str) -> str:
 async def check_device_status(device_id: str) -> str:
     """
     检查设备的在线状态
+
+    参数:
+    device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
     """
     client = ThingsPanelClient()
     try:

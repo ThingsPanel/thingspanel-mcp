@@ -8,7 +8,10 @@ logger = logging.getLogger(__name__)
 
 async def get_device_telemetry(device_id: str) -> str:
     """
-    获取设备当前遥测数据
+    根据设备ID获取设备最新遥测数据
+
+    参数:
+    device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
     """
     client = ThingsPanelClient()
     try:
@@ -44,6 +47,10 @@ async def get_device_telemetry(device_id: str) -> str:
 async def get_telemetry_by_key(device_id: str, key: str) -> str:
     """
     根据指定的key获取设备遥测数据
+    
+    参数:
+    device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
+    key: 要查询的遥测数据键名，如"status"、"temperature";请不要自行猜测，需要从设备物模型查询接口中确认是哪个key
     """
     client = ThingsPanelClient()
     try:
@@ -80,7 +87,11 @@ async def get_telemetry_history(
     aggregate_function: Optional[str] = None
 ) -> str:
     """
-    获取设备遥测数据历史
+    获取设备遥测数据历史数据
+    
+    参数:
+    device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
+    key: 要查询的遥测数据键名，如"status"、"temperature";请不要自行猜测，需要从设备物模型查询接口中确认是哪个key
     """
     client = ThingsPanelClient()
     try:
