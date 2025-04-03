@@ -25,7 +25,7 @@ async def list_devices(search: Optional[str] = None, page: int = 1, page_size: i
         
         device_info = []
         for device in devices:
-            status = "在线" if device.get("is_online") == "1" else "离线"
+            status = "在线" if device.get("is_online") == 1 else "离线"
             
             # 检查激活状态
             activate_status = "未激活"
