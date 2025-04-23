@@ -101,6 +101,12 @@ export THINGSPANEL_BASE_URL="您的ThingsPanel基础URL"
 source ~/.bashrc  # 或 source ~/.zshrc
 ```
 
+#### 方式三：Docker启动
+
+```bash
+docker run -it --rm thingspanel-mcp --api-key "您的API密钥" --base-url "您的ThingsPanel基础URL"
+```
+
 💡 提示：
 
 - API密钥通常在 ThingsPanel 平台的API KEY管理中获取。
@@ -143,6 +149,18 @@ source ~/.bashrc  # 或 source ~/.zshrc
   }
 }
 ```
+
+### Docker部署配置
+
+```json
+{
+  "mcpServers": {
+    "thingspanel": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "thingspanel-mcp", "--transport", "stdio", "--api-key", "您的API密钥", "--base-url", "您的基础URL"]
+    }
+  }
+}
 
 💡 提示：
 

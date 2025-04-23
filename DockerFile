@@ -1,6 +1,17 @@
-FROM python:3.8-slim
+FROM python:3.13-slim
 
 LABEL description="ThingsPanel MCP (Model Context Protocol) Server for ThingsPanel IoT platform"
+
+# 更新系统包并安装安全更新
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# 创建非特权用户
+RUN groupadd -r mcp && useradd --no-log-init -r -g mcp mcp
 
 # 设置工作目录
 WORKDIR /app
@@ -9,14 +20,17 @@ WORKDIR /app
 COPY . /app/
 
 # 安装依赖
-RUN pip install --no-cache-dir -e .
-
-# 暴露默认端口 (如果有的话)
-# 注意：如果您的应用需要特定端口，请在此处添加
-# EXPOSE xxxx
+RUN pip install --no-cache-dir -e . && \
+    pip install --no-cache-dir pip --upgrade
 
 # 设置环境变量
 ENV PYTHONUNBUFFERED=1
+
+# 修改权限
+RUN chown -R mcp:mcp /app
+
+# 切换到非特权用户
+USER mcp
 
 # 设置入口点
 ENTRYPOINT ["thingspanel-mcp"]
