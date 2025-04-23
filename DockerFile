@@ -1,0 +1,25 @@
+FROM python:3.8-slim
+
+LABEL description="ThingsPanel MCP (Model Context Protocol) Server for ThingsPanel IoT platform"
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制项目文件
+COPY . /app/
+
+# 安装依赖
+RUN pip install --no-cache-dir -e .
+
+# 暴露默认端口 (如果有的话)
+# 注意：如果您的应用需要特定端口，请在此处添加
+# EXPOSE xxxx
+
+# 设置环境变量
+ENV PYTHONUNBUFFERED=1
+
+# 设置入口点
+ENTRYPOINT ["thingspanel-mcp"]
+
+# 默认命令（可以被docker run命令覆盖）
+CMD ["--transport", "stdio"]
