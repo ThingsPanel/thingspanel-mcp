@@ -46,7 +46,7 @@ async def get_device_telemetry(device_id: str) -> str:
 
 async def get_telemetry_by_key(device_id: str, key: str) -> str:
     """
-    根据指定的key获取设备遥测数据
+    根据指定的key获取设备遥测当前数据
     
     参数:
     device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
@@ -107,6 +107,26 @@ async def get_telemetry_history(
             return f"获取遥测历史数据失败：{result.get('message', '未知错误')}"
         
         data = result.get("data", {})
+        
+        # 检查data是否为列表
+        if isinstance(data, list):
+            # 处理列表格式的返回数据
+            if not data:
+                return f"设备 {device_id} 在所选时间范围内没有 {key} 的历史数据。"
+            
+            # 直接展示所有数据点
+            data_points = []
+            for point in data:
+                data_points.append(f"时间: {point.get('x')}, 值: {point.get('y')}")
+            
+            return (
+                f"设备 {device_id} 的 {key} 历史数据:\n"
+                f"数据点数量: {len(data)}\n\n"
+                f"数据点列表:\n" +
+                "\n".join(data_points)
+            )
+        
+        # 原有逻辑，处理字典格式的返回数据
         time_series = data.get("time_series", [])
         time_range_info = data.get("x_time_range", {})
         
