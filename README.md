@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/thingspanel-thingspanel-mcp-badge.png)](https://mseep.ai/app/thingspanel-thingspanel-mcp)
+
 # ThingsPanel MCP [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE) [![Python Version](https://img.shields.io/pypi/pyversions/thingspanel-mcp.svg)](https://pypi.org/project/thingspanel-mcp/) [![PyPI version](https://badge.fury.io/py/thingspanel-mcp.svg)](https://badge.fury.io/py/thingspanel-mcp)
 <a href="https://glama.ai/mcp/servers/@ThingsPanel/thingspanel-mcp">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/@ThingsPanel/thingspanel-mcp/badge" />
