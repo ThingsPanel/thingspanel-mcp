@@ -11,7 +11,7 @@ async def get_device_model_info(device_id: str, model_type: str = "all") -> str:
     
     参数:
         device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
-        model_type: 物模型类型，可选值：'all'、'telemetry'、'attributes'、'commands'、'events'
+        model_type: 物模型类型，可选值：'all'、'telemetry'、'attributes'、'commands'、'events';在控制设备前，建议使用all查询。
     
     返回:
         格式化的物模型信息文本
@@ -156,7 +156,7 @@ async def get_device_model_info(device_id: str, model_type: str = "all") -> str:
 
 async def control_device_telemetry(device_id: str, control_data: Union[Dict[str, Any], str]) -> str:
     """
-    发送遥测数据控制设备 - 通用接口，可用于控制任何类型的遥测数据
+    发送遥测数据控制设备 - 通用接口，可用于控制任何类型的遥测数据，物模型中带可写权限的遥测数据
     
     参数:
         device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
@@ -294,12 +294,20 @@ async def send_device_command(device_id: str, command_data: Union[Dict[str, Any]
             else:
                 command_identifier = "command"  # 使用默认值
         
-        # 按照API要求，确保value是JSON字符串
+        # 从命令中提取params部分作为value
+        params_value = None
+        if isinstance(command_json, dict) and "params" in command_json:
+            params_value = command_json.get("params")
+        
+        # 构建请求数据
         data = {
             "device_id": device_id,
-            "value": json.dumps(command_json),
             "Identify": command_identifier
         }
+        
+        # 只有当params存在时才添加value字段
+        if params_value is not None:
+            data["value"] = json.dumps(params_value)
         
         # 发送请求
         result = await client._request("POST", "/api/v1/command/datas/pub", json_data=data)
@@ -307,7 +315,7 @@ async def send_device_command(device_id: str, command_data: Union[Dict[str, Any]
         if result.get("code") != 200:
             return f"发送设备命令失败：{result.get('message', '未知错误')}。建议检查设备物模型确认命令格式是否正确。"
         
-        return f"成功向设备 {device_id} 发送命令: {json.dumps(command_json, ensure_ascii=False)}"
+        return f"成功向设备 {device_id} 发送命令: {method_name}，参数: {json.dumps(params_value, ensure_ascii=False)}"
     
     except Exception as e:
         logger.error(f"发送设备命令出错: {str(e)}")

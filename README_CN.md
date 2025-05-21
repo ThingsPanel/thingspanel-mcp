@@ -76,7 +76,11 @@ cd thingspanel-mcp
 
 # 安装项目
 pip install -e .
+
+# 卸载项目
+pip uninstall thingspanel-mcp
 ```
+
 
 ## 🔐 配置设置
 
@@ -86,6 +90,8 @@ pip install -e .
 
 ```bash
 thingspanel-mcp --api-key "您的API密钥" --base-url "您的ThingsPanel基础URL"
+thingspanel-mcp --api-key "sk_626ece730afadf89ea65755ca17fc4ccf547f3c1c7b5506d67d8a1d38ca808d5" --base-url "http://demo.thingspanel.cn"
+
 ```
 
 #### 方式二：环境变量配置
