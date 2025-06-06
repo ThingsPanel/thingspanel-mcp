@@ -256,7 +256,7 @@ async def set_device_attributes(device_id: str, attribute_data: Union[Dict[str, 
 
 async def send_device_command(device_id: str, command_data: Union[Dict[str, Any], str], command_identifier: Optional[str] = None) -> str:
     """
-    向设备发送命令
+    向设备发送控制命令，比如：打开卧室灯，在发送控件命令前，必须通过get_device_model_info查询设备物模型，确保命令名称和参数符合设备物模型要求。
     
     参数:
         device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
@@ -264,8 +264,7 @@ async def send_device_command(device_id: str, command_data: Union[Dict[str, Any]
         command_identifier: 命令标识符，如果提供则使用此标识符
     
     注意:
-        在发送命令前，应先使用get_device_model_info函数查询设备物模型，
-        确保命令名称和参数符合设备物模型要求。
+        在发送命令前，应先使用get_device_model_info函数查询设备物模型，确保控制命令名称和参数符合设备物模型要求。
     """
     client = ThingsPanelClient()
     try:
