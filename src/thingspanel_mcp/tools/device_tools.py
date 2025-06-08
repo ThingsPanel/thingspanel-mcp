@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 async def list_devices(search: Optional[str] = None, page: int = 1, page_size: int = 10) -> str:
     """
     可以根据用户说出来的设备名称或设备编号进行模糊搜索，获取设备ID、设备名称、设备编号、在线状态、激活状态、创建时间
-    注意：支持大小写不敏感的模糊搜索，不要多次尝试，没搜索到就及时反馈用户
+    注意：支持大小写不敏感的模糊搜索，如果1次没搜索到可尝试分词搜索，按自然单词或者空格拆分，如果分词搜索也没搜索到就及时反馈用户
     """
     client = ThingsPanelClient()
     try:
