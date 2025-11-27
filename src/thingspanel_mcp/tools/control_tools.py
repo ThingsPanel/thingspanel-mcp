@@ -11,7 +11,7 @@ async def get_device_model_info(device_id: str, model_type: str = "all") -> str:
     
     参数:
         device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
-        model_type: 物模型类型，可选值：'all'、'telemetry'、'attributes'、'commands'、'events';在控制设备前，建议使用all查询。
+        model_type: 物模型类型，可选值：'all'、'telemetry'、'attributes'、'custom/control'、'events';在控制设备前，建议使用all查询。
     
     返回:
         格式化的物模型信息文本
@@ -39,7 +39,7 @@ async def get_device_model_info(device_id: str, model_type: str = "all") -> str:
         # 确定需要查询的模型类型
         model_types = []
         if model_type.lower() == "all":
-            model_types = ["telemetry", "attributes", "commands", "events"]
+            model_types = ["telemetry", "attributes", "custom/control", "events"]
         else:
             model_types = [model_type.lower()]
         
@@ -66,7 +66,7 @@ async def get_device_model_info(device_id: str, model_type: str = "all") -> str:
             type_display_map = {
                 "telemetry": "遥测",
                 "attributes": "属性",
-                "commands": "命令",
+                "custom/control": "控制命令",
                 "events": "事件"
             }
             type_display = type_display_map.get(type_name, type_name.capitalize())
@@ -126,6 +126,11 @@ async def get_device_model_info(device_id: str, model_type: str = "all") -> str:
                         "params": example_params
                     }
                     formatted_info.append(f"```json\n{json.dumps(example_cmd, ensure_ascii=False, indent=2)}\n```\n")
+            elif type_name == "custom/control":
+                for item in model_list:
+                    item_name = item.get("name", "未知")
+                    item_content = item.get("content", "未知")
+                    formatted_info.append(f"- **{item_name}** (指令内容: {item_content})")
             else:
                 # 处理其他类型的物模型
                 for item in model_list:
