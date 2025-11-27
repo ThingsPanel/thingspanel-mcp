@@ -39,7 +39,7 @@ class ThingsPanelServer:
         self.server.tool()(control_tools.get_device_model_info)
         self.server.tool()(control_tools.control_device_telemetry)
         self.server.tool()(control_tools.set_device_attributes)
-        self.server.tool()(control_tools.send_device_command)
+        # self.server.tool()(control_tools.send_device_command)
         self.server.tool()(control_tools.control_device_with_model_check)
         
     def _setup_prompts(self):

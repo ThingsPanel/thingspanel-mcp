@@ -156,11 +156,11 @@ async def get_device_model_info(device_id: str, model_type: str = "all") -> str:
 
 async def control_device_telemetry(device_id: str, control_data: Union[Dict[str, Any], str]) -> str:
     """
-    发送遥测数据控制设备 - 通用接口，可用于控制任何类型的遥测数据，物模型中带可写权限的遥测数据
+    发送遥测数据控制设备 - 通用接口，可用于控制任何类型的遥测数据，物模型中带可写权限的遥测数据，比如：打开卧室灯，在发送控件命令前，必须通过get_device_model_info查询设备物模型，确保命令名称和参数符合设备物模型要求
     
     参数:
         device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
-        control_data: 控制数据，格式如 {"temperature": 28.5, "light": 2000, "switch": true}
+        control_data: 控制数据，格式比如 {"temperature": 28.5, "light": 2000, "switch": true}, 准确参数来自物模型
     """
     client = ThingsPanelClient()
     try:
@@ -326,7 +326,7 @@ async def control_device_with_model_check(device_id: str, command_type: str, com
     
     参数:
         device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
-        command_type: 命令类型，可选值：'telemetry'、'attribute'、'command'
+        command_type: 命令类型，可选值：'telemetry'、'attribute'
         command_data: 命令数据
     
     返回:
@@ -335,14 +335,13 @@ async def control_device_with_model_check(device_id: str, command_type: str, com
     # 映射命令类型到物模型类型
     model_type_map = {
         'telemetry': 'telemetry',
-        'attribute': 'attributes',
-        'command': 'commands'
+        'attribute': 'attributes'
     }
     
     # 获取对应的物模型类型
     model_type = model_type_map.get(command_type.lower())
     if not model_type:
-        return f"不支持的命令类型: {command_type}，请选择 'telemetry'、'attribute' 或 'command'"
+        return f"不支持的命令类型: {command_type}，请选择 'telemetry'、'attribute'"
     
     # 查询对应类型的物模型
     model_info = await get_device_model_info(device_id, model_type=model_type)
@@ -353,11 +352,6 @@ async def control_device_with_model_check(device_id: str, command_type: str, com
         control_result = await control_device_telemetry(device_id, command_data)
     elif command_type.lower() == 'attribute':
         control_result = await set_device_attributes(device_id, command_data)
-    elif command_type.lower() == 'command':
-        if isinstance(command_data, dict) and "method" in command_data:
-            control_result = await send_device_command(device_id, command_data)
-        else:
-            return f"命令数据格式错误，command类型必须包含method字段。请参考物模型调整命令格式。\n\n物模型信息:\n{model_info}"
     
     # 返回物模型信息和控制结果
     return f"设备物模型信息:\n{model_info}\n\n控制结果:\n{control_result}" 
