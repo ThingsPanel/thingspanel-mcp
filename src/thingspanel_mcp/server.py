@@ -93,7 +93,7 @@ class ThingsPanelServer:
             print("配置不完整，服务器启动失败。请配置 ThingsPanel Token/API Key 或 ThingsVis Token。")
             print("您可以通过以下方式配置API密钥：")
             print("1. 设置环境变量 THINGSPANEL_TOKEN 或 THINGSPANEL_API_KEY")
-            print("2. 创建 ~/.thingspanel/config.json，在 profiles 中分别配置超管、租户管理员和租户用户的 token")
+            print("2. 创建 ~/.thingspanel/config.json，在 profiles 中分别配置超管和租户管理员的 token")
             return
         
         logger.info(f"ThingsPanel MCP 服务器启动，使用 {transport} 传输")

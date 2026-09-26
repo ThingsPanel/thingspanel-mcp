@@ -86,12 +86,12 @@ WorkBuddy 官方连接器规范也说明 MCP 已提供标准工具描述时 Skil
 | 上架项目 | 当前状态 | 剩余工作/风险 |
 |---|---|---|
 | 连接器目录 | 未创建 | 至少要有 `connector-meta.json`、`mcp.json`、`icon.svg`；Skill 与 token schema 视认证模式加入。 |
-| 安装运行时 | 本机已用 uv 安装 | WorkBuddy 用户机器须能运行 Python MCP；可先用 `uvx --from thingspanel-mcp==<新版本>` 做 stdio 安装验证，但 PyPI 当前最新为 0.1.8，仓库版本为 0.1.6 且含未发布改动，须先提升版本并发布 PyPI 包。不能在 connector manifest 指向不存在版本。 |
-| 发布版本 | 未发布本轮代码 | PyPI 0.1.8 已占用；本轮代码不能以 0.1.6 覆盖，需定新版本、核对源码/许可证/README/依赖并由维护者发布。 |
+| 安装运行时 | 本机已用 uv 安装；PyPI 0.1.9 已发布 | 0.1.9 可由 uvx 安装并启动。0.1.10 发布包正在补齐中英文用户文档并修正社区版角色说明；发布后再将 WorkBuddy connector manifest 固定到该版本。 |
+| 发布版本 | 0.1.9 已发布；0.1.10 待上传 | 0.1.9 的 wheel/sdist 已上传并通过 PyPI 安装启动检查；0.1.10 文档、版本与 Apache 许可证元数据已更新，待完成最终上传验证。 |
 | 认证表单 | 当前由本机配置文件读取 profile | WorkBuddy connector 应用 `auth_mode="token"` + `token-schema.json`，让用户在本机填写 ThingsPanel API Key 与平台 Base URL；不能把当前机器的 JWT/API Key 写进包。 |
 | Server 传输 | 本机 stdio 正常 | WorkBuddy 官方支持本地 stdio；若改成远程托管则须 HTTPS + SSE 或 streamable HTTP。本仓库现在有 stdio/SSE，没有 streamable HTTP；若提交远程方案还需补传输与部署。 |
 | 工具面安全 | 363 API + 13 旧工具 | 公开连接器把 376 个工具一次性暴露会造成工具选择噪声和误写风险。应做只读/常用工具精简、禁用高风险工具或拆分连接器；至少对写/命令/删除提供明确人工确认。 |
-| Skill/说明/示例 | 有 README 与 API 清单，无 WorkBuddy connector Skill | 建议提供中英文说明、2–5 个示例、profile/认证指引、常见错误和确认规则；MCP 的标准参数描述已满足基础调用，但 Skill 能减少 363 个工具间误选。 |
+| Skill/说明/示例 | README.md 与 README_CN.md 的双语使用指南已完成；无 WorkBuddy connector Skill | PyPI 用户指南覆盖安装、双服务 profile、376 个工具范围、读写确认、Codex/Claude/WorkBuddy 本机配置、结果格式、错误排查和开发发布。WorkBuddy 市场包仍建议额外提供 2–5 个示例与 Skill，帮助用户在 376 个工具间选择。 |
 | 图标与元数据 | 缺少 | 需要唯一 `source`（小写 kebab-case）、版本、中英文名称/描述、示例和图标。 |
 | 凭证和隐私审核 | 本地配置已保护 | 不得把真实 token 放入打包文件、Skill 或例子；连接器需要最小权限。高权限超管连接器尤其需要缩窄可调用权限，并确认 WorkBuddy 上架所需主体、隐私和开发者认证。 |
 | 上架提交 | 尚未提交 | 官方流程要求提交连接器包审核；批准后进入市场，后续更改需重新审核。 |
@@ -104,13 +104,13 @@ WorkBuddy 官方连接器规范也说明 MCP 已提供标准工具描述时 Skil
 | B. PyPI 包 + WorkBuddy 连接器市场（stdio） | 用户安装简单；凭证可以留在本机；复用已有社区 MCP。 | 先发新的 PyPI 版本、完成连接器元数据/图标/token 表单/Skill/安全精简、再提交审核；Python/uv 环境兼容仍需验证。 | 推荐的首个公开发布路径，前提是工具面做最小权限收敛。 |
 | C. HTTPS 远程 MCP 服务 | 用户不用安装 Python/uv；可集中管理更新。 | 需补 streamable HTTP 或稳定 SSE 部署、TLS、OAuth/用户隔离、租户授权代理和运维可用性；不能共享单个超管 token。 | 企业级托管服务，工作量最高。 |
 
-**建议顺序：**先保留本地 Codex 版本完成只读/写权限回归；同时将 WorkBuddy 公开包定为“租户管理员只读工具优先”的最小连接器，再补 PyPI 发布版本和 connector bundle。不要把本机 superadmin profile 打包或设为 WorkBuddy 市场默认身份。
+**当前状态（2026-09-26）：**PyPI 包发布正在完成；WorkBuddy 市场 connector 尚未打包或提交。市场发布仍需 connector-meta.json、mcp.json、icon.svg、用户自填凭证表单、工具面最小权限审查及审核。不要把本机 superadmin profile 打包或设为 WorkBuddy 市场默认身份。
 
 ### 官方资料
 
 - [WorkBuddy 开放平台连接器规范](https://open.workbuddy.cn/docs/connector)：目录、MCP 传输、安全、用户自填 Token、Skill、上架检查与审核。
 - [WorkBuddy MCP 配置指南](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/MCP-Guide)：用户级 `~/.workbuddy/mcp.json`、本机 MCP 配置和使用方式。
-- [ThingsPanel MCP 当前 PyPI 发行记录](https://pypi.org/project/thingspanel-mcp/)：当前已有公开发行 0.1.8；本地仓库版本 0.1.6 与公开发行不同。
+- [ThingsPanel MCP 当前 PyPI 发行记录](https://pypi.org/project/thingspanel-mcp/)：截至本次更新，0.1.9 已公开，0.1.10 的上传状态以上述发布更新为准。
 
 ## 7. 用户、客户、市场和商业价值
 

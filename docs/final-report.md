@@ -54,3 +54,7 @@ ThingsVis SSO 是登录接口，会按设计创建或更新 ThingsVis 映射用�
 详细逐项清单见 [`global-task-list.md`](./global-task-list.md)，问题与语义修正记录见 [`error-log.md`](./error-log.md)，Apifox/源码差异见 [`apifox-source-diff.md`](./apifox-source-diff.md)。
 
 文件级变更、负面影响/风险、Skill 需求判断和 WorkBuddy 市场发布剩余项目见 [`change-impact-and-workbuddy.md`](./change-impact-and-workbuddy.md)。
+
+### PyPI 发布与文档更新（2026-09-26）
+
+PyPI 0.1.9 已发布并从 PyPI 安装验证；随后发现 README 中社区版 profile 仍提到 tenant_user。发布分支 codex/release-0.1.10 正在补齐中英文完整使用指南、修正启动提示和许可证分类。WorkBuddy 市场 connector 尚未提交。
