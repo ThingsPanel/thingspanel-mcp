@@ -9,6 +9,7 @@ def main():
     # 设置参数解析
     parser = argparse.ArgumentParser(description='ThingsPanel MCP 服务器')
     parser.add_argument('--api-key', help='ThingsPanel API密钥')
+    parser.add_argument('--token', help='ThingsPanel x-token JWT')
     parser.add_argument('--base-url', help='ThingsPanel API基础URL')
     parser.add_argument('--transport', choices=['stdio', 'sse'], default='stdio',
                       help='传输类型 (默认: stdio)')
@@ -22,7 +23,8 @@ def main():
     # 设置API密钥
     if args.api_key:
         os.environ['THINGSPANEL_API_KEY'] = args.api_key
-        print(f"从命令行设置API密钥: {args.api_key[:5]}...")
+    if args.token:
+        os.environ['THINGSPANEL_TOKEN'] = args.token
         
     # 设置基础URL
     if args.base_url:
