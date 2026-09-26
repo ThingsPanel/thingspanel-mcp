@@ -29,6 +29,6 @@
 | E-023 | 2026-09-26 | MCP SDK 主版本不兼容 | 仅写 `mcp>=1.2.0`，导致干净环境解析至 MCP SDK 2.2.0；其已移除 `mcp.server.fastmcp` 导入路径。应把依赖约束在 1.x 或迁移至 2.x。 | 将范围约束为 `mcp>=1.2.0,<2.0.0`；本机隔离环境安装为 1.30.0。 | MCP initialize/list-tools 成功，共 376 工具。未来升级 2.x 前必须完成 FastMCP API 迁移。 |
 | E-024 | 2026-09-26 | 本地 MCP endpoint/profile 设置 | 仅完成 MCP 初始化未核对真实只读调用；原用户配置 HTTP URL 返回 301，并将 nginx HTML 错标为成功。 | 本机 URL 改为本地 backend `http://localhost:9999`，配置租户 A default、SYS_ADMIN 与租户 B 的 JWT profiles；profile 配置文件权限设为 0600；Codex 对 190 个写/控制工具设置 `approval_mode=approve`。 | 三个有效 profile 经真实 MCP 工具读取个人信息业务码 200；JWT 保存在本机配置中，30 天到期需轮换。账户密码没有持久化。 |
 
-| E-025 | 2026-09-26 | 发布文档与产品角色边界 | PyPI 0.1.9 README 仍举例配置 Community 不存在的 tenant_user profile，并保留过时的 Claude API Key 参数示例。 | 补齐 README.md 和 README_CN.md 的安装、权限/profile、工具参数/确认、Codex/Claude/WorkBuddy 配置、错误排查及开发发布说明；更正登录 JWT 示例、社区角色边界、服务端启动提示和许可证分类。 | 0.1.10 文档已完成双语校对；18 项单测、发行包构建与 twine check 通过；最终包上传后再核验 PyPI 页面与 uvx 安装。 |
+| E-025 | 2026-09-26 | 发布文档与产品角色边界 | PyPI 0.1.9 README 仍举例配置 Community 不存在的 tenant_user profile，并保留过时的 Claude API Key 参数示例。 | 补齐 README.md 和 README_CN.md 的安装、权限/profile、工具参数/确认、Codex/Claude/WorkBuddy 配置、错误排查及开发发布说明；更正登录 JWT 示例、社区角色边界、服务端启动提示和许可证分类。 | 0.1.10 已发布；18 项单测、发行包构建与 twine check 通过；PyPI 页面确认发行文件，`uvx --from thingspanel-mcp==0.1.10 thingspanel-mcp --help` 安装及启动通过。 |
 
 逐条问题的“错误/正确语义、改后现状与后果、收益、风险范围”展开表见 [`change-impact-and-workbuddy.md`](./change-impact-and-workbuddy.md)。

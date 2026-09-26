@@ -86,8 +86,8 @@ WorkBuddy 官方连接器规范也说明 MCP 已提供标准工具描述时 Skil
 | 上架项目 | 当前状态 | 剩余工作/风险 |
 |---|---|---|
 | 连接器目录 | 未创建 | 至少要有 `connector-meta.json`、`mcp.json`、`icon.svg`；Skill 与 token schema 视认证模式加入。 |
-| 安装运行时 | 本机已用 uv 安装；PyPI 0.1.9 已发布 | 0.1.9 可由 uvx 安装并启动。0.1.10 发布包正在补齐中英文用户文档并修正社区版角色说明；发布后再将 WorkBuddy connector manifest 固定到该版本。 |
-| 发布版本 | 0.1.9 已发布；0.1.10 待上传 | 0.1.9 的 wheel/sdist 已上传并通过 PyPI 安装启动检查；0.1.10 文档、版本与 Apache 许可证元数据已更新，待完成最终上传验证。 |
+| 安装运行时 | 本机已用 uv 安装；PyPI 0.1.10 已发布 | `uvx --from thingspanel-mcp==0.1.10 thingspanel-mcp --help` 已成功；WorkBuddy connector manifest 可固定此版本。 |
+| 发布版本 | 0.1.10 已发布并验证 | wheel/sdist 已上传；PyPI 页面显示 0.1.10 为最新版本，临时安装启动检查成功，README 中英文文档及 Apache 许可证元数据已随包发布。 |
 | 认证表单 | 当前由本机配置文件读取 profile | WorkBuddy connector 应用 `auth_mode="token"` + `token-schema.json`，让用户在本机填写 ThingsPanel API Key 与平台 Base URL；不能把当前机器的 JWT/API Key 写进包。 |
 | Server 传输 | 本机 stdio 正常 | WorkBuddy 官方支持本地 stdio；若改成远程托管则须 HTTPS + SSE 或 streamable HTTP。本仓库现在有 stdio/SSE，没有 streamable HTTP；若提交远程方案还需补传输与部署。 |
 | 工具面安全 | 363 API + 13 旧工具 | 公开连接器把 376 个工具一次性暴露会造成工具选择噪声和误写风险。应做只读/常用工具精简、禁用高风险工具或拆分连接器；至少对写/命令/删除提供明确人工确认。 |
@@ -104,13 +104,13 @@ WorkBuddy 官方连接器规范也说明 MCP 已提供标准工具描述时 Skil
 | B. PyPI 包 + WorkBuddy 连接器市场（stdio） | 用户安装简单；凭证可以留在本机；复用已有社区 MCP。 | 先发新的 PyPI 版本、完成连接器元数据/图标/token 表单/Skill/安全精简、再提交审核；Python/uv 环境兼容仍需验证。 | 推荐的首个公开发布路径，前提是工具面做最小权限收敛。 |
 | C. HTTPS 远程 MCP 服务 | 用户不用安装 Python/uv；可集中管理更新。 | 需补 streamable HTTP 或稳定 SSE 部署、TLS、OAuth/用户隔离、租户授权代理和运维可用性；不能共享单个超管 token。 | 企业级托管服务，工作量最高。 |
 
-**当前状态（2026-09-26）：**PyPI 包发布正在完成；WorkBuddy 市场 connector 尚未打包或提交。市场发布仍需 connector-meta.json、mcp.json、icon.svg、用户自填凭证表单、工具面最小权限审查及审核。不要把本机 superadmin profile 打包或设为 WorkBuddy 市场默认身份。
+**当前状态（2026-09-26）：**PyPI 0.1.10 已发布并完成安装启动验证；WorkBuddy 市场 connector 尚未打包或提交。市场发布仍需 connector-meta.json、mcp.json、icon.svg、用户自填凭证表单、工具面最小权限审查及审核。不要把本机 superadmin profile 打包或设为 WorkBuddy 市场默认身份。
 
 ### 官方资料
 
 - [WorkBuddy 开放平台连接器规范](https://open.workbuddy.cn/docs/connector)：目录、MCP 传输、安全、用户自填 Token、Skill、上架检查与审核。
 - [WorkBuddy MCP 配置指南](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/MCP-Guide)：用户级 `~/.workbuddy/mcp.json`、本机 MCP 配置和使用方式。
-- [ThingsPanel MCP 当前 PyPI 发行记录](https://pypi.org/project/thingspanel-mcp/)：截至本次更新，0.1.9 已公开，0.1.10 的上传状态以上述发布更新为准。
+- [ThingsPanel MCP 0.1.10 PyPI 发行页](https://pypi.org/project/thingspanel-mcp/0.1.10/)：0.1.10 为最新公开发行版；本机 `uvx` 安装及 CLI help 启动验证通过。
 
 ## 7. 用户、客户、市场和商业价值
 

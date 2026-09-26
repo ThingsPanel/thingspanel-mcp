@@ -57,4 +57,4 @@ ThingsVis SSO 是登录接口，会按设计创建或更新 ThingsVis 映射用�
 
 ### PyPI 发布与文档更新（2026-09-26）
 
-PyPI 0.1.9 已发布并从 PyPI 安装验证；随后发现 README 中社区版 profile 仍提到 tenant_user。发布分支 codex/release-0.1.10 正在补齐中英文完整使用指南、修正启动提示和许可证分类。WorkBuddy 市场 connector 尚未提交。
+PyPI 0.1.10 已发布，且从 PyPI 临时安装后运行 `thingspanel-mcp --help` 成功。`README.md` 与 `README_CN.md` 已补齐完整的安装、权限/profile、工具调用、Codex/Claude/WorkBuddy 本机配置、错误排查和开发发布指南；社区版只含 SYS_ADMIN/TENANT_ADMIN，租户子用户属于企业版。发行包构建与 `twine check` 通过；WorkBuddy 市场 connector 尚未打包或提交审核。
