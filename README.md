@@ -104,8 +104,8 @@ source ~/.bashrc  # or source ~/.zshrc
 
 💡 Tips:
 
-- JWT tokens retain the permissions assigned to their accounts by the services. ThingsPanel API keys map to tenant-admin permissions and cannot represent superadmins or normal tenant users.
-- Use named profiles in `~/.thingspanel/config.json` for `superadmin`, `tenant_admin`, and `tenant_user`; select the matching profile in each MCP API tool call. The MCP tools do not accept caller-supplied roles.
+- JWTs retain the permissions assigned by their services. ThingsPanel API keys map to tenant-admin permissions; use a ThingsPanel login JWT for `SYS_ADMIN`. The Community edition supports `SYS_ADMIN` and `TENANT_ADMIN`; tenant subusers are an Enterprise edition feature.
+- For multiple Community accounts, configure `superadmin` and `tenant_admin` profiles in `~/.thingspanel/config.json` and select the matching profile in each API tool call. The Community edition has no tenant-user profile, and MCP tools do not accept caller-supplied roles.
 - Base URL refers to your ThingsPanel platform address, e.g., `http://demo.thingspanel.cn/`
 - Command-line configuration is recommended to protect sensitive information
 
@@ -119,7 +119,7 @@ Add the following to your Claude desktop configuration file (`claude_desktop_con
     "thingspanel": {
       "command": "thingspanel-mcp",
       "args": [
-        "--api-key", "Your API Key",
+        "--token", "Your ThingsPanel login JWT",
         "--base-url", "Your Base URL"
       ]
     }

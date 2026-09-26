@@ -111,14 +111,14 @@ source ~/.bashrc  # 或 source ~/.zshrc
 #### 方式三：Docker启动
 
 ```bash
-docker run -it --rm thingspanel-mcp --api-key "您的API密钥" --base-url "您的ThingsPanel基础URL"
+docker run -it --rm thingspanel-mcp --token "您的ThingsPanel登录JWT" --base-url "您的ThingsPanel基础URL"
 ```
 
 💡 提示：
 
 - ThingsPanel 和 ThingsVis 使用各自服务的登录令牌，具体权限由服务端校验。
-- 同时使用多个账号时，在 `~/.thingspanel/config.json` 中配置 `superadmin`、`tenant_admin` 和 `tenant_user` profile，并在工具调用时选择 `profile`；MCP 不接受调用参数中的角色声明。
-- ThingsPanel API Key 仅用于平台支持的 API Key 场景，会被映射为租户管理员权限，不能代替超管或普通租户用户令牌。
+- 社区版只支持 `SYS_ADMIN` 和 `TENANT_ADMIN`，没有租户下的子用户。多个账号可在 `~/.thingspanel/config.json` 中配置 `superadmin`、`tenant_admin` profile，并在工具调用时选择 `profile`；MCP 不接受调用参数中的角色声明。
+- ThingsPanel API Key 在平台中映射为租户管理员权限；超管需使用 ThingsPanel 登录 JWT。企业版租户用户能力不适用于社区版。
 - 基础URL指的是您的 ThingsPanel 平台地址，例如 `http://demo.thingspanel.cn/`
 - 命名身份的配置示例：
 
@@ -128,8 +128,7 @@ docker run -it --rm thingspanel-mcp --api-key "您的API密钥" --base-url "您�
   "thingsvis_base_url": "https://thingsvis.example.com",
   "profiles": {
     "superadmin": {"thingspanel_token": "<superadmin-jwt>", "thingsvis_token": "<superadmin-thingsvis-jwt>"},
-    "tenant_admin": {"thingspanel_token": "<tenant-admin-jwt>", "thingsvis_token": "<tenant-admin-thingsvis-jwt>"},
-    "tenant_user": {"thingspanel_token": "<tenant-user-jwt>", "thingsvis_token": "<tenant-user-thingsvis-jwt>"}
+    "tenant_admin": {"thingspanel_token": "<tenant-admin-jwt>", "thingsvis_token": "<tenant-admin-thingsvis-jwt>"}
   }
 }
 ```
@@ -148,7 +147,7 @@ docker run -it --rm thingspanel-mcp --api-key "您的API密钥" --base-url "您�
     "thingspanel": {
       "command": "thingspanel-mcp",
       "args": [
-        "--api-key", "您的API密钥",
+        "--token", "您的ThingsPanel登录JWT",
         "--base-url", "您的基础URL"
       ]
     }
@@ -180,7 +179,7 @@ docker run -it --rm thingspanel-mcp --api-key "您的API密钥" --base-url "您�
   "mcpServers": {
     "thingspanel": {
       "command": "docker",
-      "args": ["run", "--rm", "-i", "thingspanel-mcp", "--transport", "stdio", "--api-key", "您的API密钥", "--base-url", "您的基础URL"]
+      "args": ["run", "--rm", "-i", "thingspanel-mcp", "--transport", "stdio", "--token", "您的ThingsPanel登录JWT", "--base-url", "您的基础URL"]
     }
   }
 }
