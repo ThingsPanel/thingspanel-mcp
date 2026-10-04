@@ -7,6 +7,7 @@ from mcp.server.fastmcp import FastMCP, Context
 from .config import config
 from .tools import device_tools, telemetry_tools, dashboard_tools, control_tools
 from .prompts import common_prompts
+from .api_tools import register_api_tools
 
 logger = logging.getLogger(__name__)
 
@@ -22,25 +23,29 @@ class ThingsPanelServer:
     def _setup_tools(self):
         """设置服务器工具"""
         # 设备相关工具
-        self.server.tool()(device_tools.list_devices)
-        self.server.tool()(device_tools.get_device_detail)
-        self.server.tool()(device_tools.check_device_status)
+        self.server.tool(structured_output=True)(device_tools.list_devices)
+        self.server.tool(structured_output=True)(device_tools.get_device_detail)
+        self.server.tool(structured_output=True)(device_tools.check_device_status)
         
         # 遥测数据相关工具
-        self.server.tool()(telemetry_tools.get_device_telemetry)
-        self.server.tool()(telemetry_tools.get_telemetry_by_key)
-        self.server.tool()(telemetry_tools.get_telemetry_history)
+        self.server.tool(structured_output=True)(telemetry_tools.get_device_telemetry)
+        self.server.tool(structured_output=True)(telemetry_tools.get_telemetry_by_key)
+        self.server.tool(structured_output=True)(telemetry_tools.get_telemetry_history)
         
         # 看板相关工具
-        self.server.tool()(dashboard_tools.get_tenant_summary)
-        self.server.tool()(dashboard_tools.get_device_trend_report)
+        self.server.tool(structured_output=True)(dashboard_tools.get_tenant_summary)
+        self.server.tool(structured_output=True)(dashboard_tools.get_device_trend_report)
         
         # 设备控制相关工具
-        self.server.tool()(control_tools.get_device_model_info)
-        self.server.tool()(control_tools.control_device_telemetry)
-        self.server.tool()(control_tools.set_device_attributes)
-        self.server.tool()(control_tools.send_device_command)
-        self.server.tool()(control_tools.control_device_with_model_check)
+        self.server.tool(structured_output=True)(control_tools.get_device_model_info)
+        self.server.tool(structured_output=True)(control_tools.control_device_telemetry)
+        self.server.tool(structured_output=True)(control_tools.set_device_attributes)
+        self.server.tool(structured_output=True)(control_tools.send_device_command)
+        self.server.tool(structured_output=True)(control_tools.get_device_command_status)
+        self.server.tool(structured_output=True)(control_tools.control_device_with_model_check)
+
+        # 为源码清单中的每个 API 操作注册独立的 allow-listed MCP tool。
+        self.api_tool_count = register_api_tools(self.server)
         
     def _setup_prompts(self):
         """设置预定义提示"""
@@ -73,8 +78,8 @@ class ThingsPanelServer:
         
     def check_configuration(self) -> bool:
         """检查配置是否完整"""
-        if not config.api_key:
-            logger.warning("API密钥未配置，服务无法正常工作")
+        if not config.is_configured():
+            logger.warning("未配置ThingsPanel或ThingsVis API认证信息，服务无法访问受保护的API")
             return False
         return True
         
@@ -86,10 +91,10 @@ class ThingsPanelServer:
         
         if not self.check_configuration():
             logger.error("配置不完整，服务器启动失败")
-            print("配置不完整，服务器启动失败。请确保API密钥已正确配置。")
+            print("配置不完整，服务器启动失败。请配置 ThingsPanel Token/API Key 或 ThingsVis Token。")
             print("您可以通过以下方式配置API密钥：")
-            print("1. 设置环境变量 THINGSPANEL_API_KEY")
-            print("2. 创建配置文件 ~/.thingspanel/config.json 并包含 {\"api_key\": \"您的API密钥\"}")
+            print("1. 设置环境变量 THINGSPANEL_TOKEN 或 THINGSPANEL_API_KEY")
+            print("2. 创建 ~/.thingspanel/config.json，在 profiles 中分别配置超管、租户管理员和租户用户的 token")
             return
         
         logger.info(f"ThingsPanel MCP 服务器启动，使用 {transport} 传输")

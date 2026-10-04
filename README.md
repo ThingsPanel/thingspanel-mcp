@@ -50,6 +50,12 @@ ThingsPanel MCP Server is an innovative intelligent interface that enables you t
 - 🎮 Convenient Device Control
 - 📈 Platform-wide Analytics
 
+## Machine-readable results for focused tools
+
+The commonly used device, telemetry, dashboard, and control tools return MCP `structuredContent` with a consistent `ok`, `summary`, `data`, and `error` envelope. Agents should make decisions from `ok` and the typed fields in `data`; `summary` is for people and should not be parsed as a program condition.
+
+Command submission returns a `message_id` and its acceptance status. Pass that ID to `get_device_command_status` to query the device receipt. “Accepted” means the platform accepted the request; it does not mean the device executed it.
+
 ## 🛠️ Prerequisites
 
 - Python 3.8+
@@ -84,7 +90,7 @@ pip install -e .
 #### Method 1: Direct Command Line Configuration (Recommended)
 
 ```bash
-thingspanel-mcp --api-key "Your API Key" --base-url "Your ThingsPanel Base URL"
+thingspanel-mcp --token "Your ThingsPanel login token" --base-url "Your ThingsPanel Base URL"
 ```
 
 #### Method 2: Environment Variable Configuration
@@ -93,8 +99,10 @@ If you want to avoid repeated input, set environment variables:
 
 ```bash
 # Add to ~/.bashrc, ~/.zshrc, or corresponding shell config file
-export THINGSPANEL_API_KEY="Your API Key"
+export THINGSPANEL_TOKEN="Your ThingsPanel login token"
 export THINGSPANEL_BASE_URL="Your ThingsPanel Base URL"
+export THINGSVIS_BASE_URL="Your ThingsVis service URL"
+export THINGSVIS_TOKEN="Your ThingsVis login token"
 
 # Then run
 source ~/.bashrc  # or source ~/.zshrc
@@ -102,7 +110,8 @@ source ~/.bashrc  # or source ~/.zshrc
 
 💡 Tips:
 
-- API keys are typically obtained from the API KEY management in the ThingsPanel platform
+- JWT tokens retain the permissions assigned to their accounts by the services. ThingsPanel API keys map to tenant-admin permissions and cannot represent superadmins or normal tenant users.
+- Use named profiles in `~/.thingspanel/config.json` for `superadmin`, `tenant_admin`, and `tenant_user`; select the matching profile in each MCP API tool call. The MCP tools do not accept caller-supplied roles.
 - Base URL refers to your ThingsPanel platform address, e.g., `http://demo.thingspanel.cn/`
 - Command-line configuration is recommended to protect sensitive information
 

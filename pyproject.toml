@@ -18,8 +18,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "mcp>=1.2.0",
+    "mcp>=1.2.0,<2.0.0",
     "httpx>=0.23.0",
+    "websockets>=13.0",
 ]
 
 [project.urls]
@@ -33,3 +34,6 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+thingspanel_mcp = ["api_manifest.json"]

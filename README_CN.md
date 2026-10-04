@@ -51,6 +51,12 @@ ThingsPanel MCP 服务器是一个革新性的智能接口，让您可以：
 - 🎮 便捷设备控制
 - 📈 平台全面分析
 
+## 聚焦工具的机器可读结果
+
+常用设备、遥测、看板和控制工具返回 MCP `structuredContent`，统一包含 `ok`、`summary`、`data` 和 `error` 字段。Agent 应根据 `ok` 和 `data` 中的类型化字段判断结果；`summary` 仅用于人类阅读，不应作为程序判断条件。
+
+命令下发结果会提供 `message_id` 和当前受理状态。可将该 ID 传给 `get_device_command_status` 查询后续回执；“已受理”只代表平台接收了请求，不等于设备已执行。
+
 ## 🛠️ 环境准备
 
 - Python 3.8 及以上版本
@@ -86,11 +92,10 @@ pip uninstall thingspanel-mcp
 
 ### 配置方式（选择其一）
 
-#### 方式一：命令行直接配置（推荐）
+#### 方式一：命令行配置默认身份
 
 ```bash
-thingspanel-mcp --api-key "您的API密钥" --base-url "您的ThingsPanel基础URL"
-thingspanel-mcp --api-key "sk_626ece730afadf89ea65755ca17fc4ccf547f3c1c7b5506d67d8a1d38ca808d5" --base-url "http://demo.thingspanel.cn"
+thingspanel-mcp --token "您的ThingsPanel登录令牌" --base-url "您的ThingsPanel基础URL"
 
 ```
 
@@ -100,8 +105,10 @@ thingspanel-mcp --api-key "sk_626ece730afadf89ea65755ca17fc4ccf547f3c1c7b5506d67
 
 ```bash
 # 在 ~/.bashrc, ~/.zshrc 或对应的 shell 配置文件中添加
-export THINGSPANEL_API_KEY="您的API密钥"
+export THINGSPANEL_TOKEN="您的ThingsPanel登录令牌"
 export THINGSPANEL_BASE_URL="您的ThingsPanel基础URL"
+export THINGSVIS_BASE_URL="您的ThingsVis服务地址"
+export THINGSVIS_TOKEN="您的ThingsVis登录令牌"
 
 # 然后运行
 source ~/.bashrc  # 或 source ~/.zshrc
@@ -115,9 +122,25 @@ docker run -it --rm thingspanel-mcp --api-key "您的API密钥" --base-url "您�
 
 💡 提示：
 
-- API密钥通常在 ThingsPanel 平台的API KEY管理中获取。
+- ThingsPanel 和 ThingsVis 使用各自服务的登录令牌，具体权限由服务端校验。
+- 同时使用多个账号时，在 `~/.thingspanel/config.json` 中配置 `superadmin`、`tenant_admin` 和 `tenant_user` profile，并在工具调用时选择 `profile`；MCP 不接受调用参数中的角色声明。
+- ThingsPanel API Key 仅用于平台支持的 API Key 场景，会被映射为租户管理员权限，不能代替超管或普通租户用户令牌。
 - 基础URL指的是您的 ThingsPanel 平台地址，例如 `http://demo.thingspanel.cn/`
-- 建议优先使用命令行配置，以保护敏感信息
+- 命名身份的配置示例：
+
+```json
+{
+  "base_url": "https://thingspanel.example.com",
+  "thingsvis_base_url": "https://thingsvis.example.com",
+  "profiles": {
+    "superadmin": {"thingspanel_token": "<superadmin-jwt>", "thingsvis_token": "<superadmin-thingsvis-jwt>"},
+    "tenant_admin": {"thingspanel_token": "<tenant-admin-jwt>", "thingsvis_token": "<tenant-admin-thingsvis-jwt>"},
+    "tenant_user": {"thingspanel_token": "<tenant-user-jwt>", "thingsvis_token": "<tenant-user-thingsvis-jwt>"}
+  }
+}
+```
+
+环境变量可使用 `THINGSPANEL_PROFILE_<名称>_TOKEN`、`THINGSPANEL_PROFILE_<名称>_API_KEY` 和 `THINGSPANEL_PROFILE_<名称>_THINGSVIS_TOKEN`，例如 `THINGSPANEL_PROFILE_TENANT_ADMIN_TOKEN`。
 
 ## 🖥️ Claude 桌面版集成
 
@@ -148,7 +171,7 @@ docker run -it --rm thingspanel-mcp --api-key "您的API密钥" --base-url "您�
       "command": "/Library/Frameworks/Python.framework/Versions/3.12/bin/thingspanel-mcp",
       "args": [],
       "env": {
-        "THINGSPANEL_API_KEY": "您的API密钥",
+        "THINGSPANEL_TOKEN": "您的ThingsPanel登录令牌",
         "THINGSPANEL_BASE_URL": "您的基础URL"
       }
     }
