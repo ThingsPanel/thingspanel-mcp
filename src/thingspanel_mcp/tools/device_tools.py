@@ -1,128 +1,148 @@
-# src/thingspanel_mcp/tools/device_tools.py
-from typing import Dict, List, Any, Optional
+"""Device lookup tools with stable, machine-readable result schemas."""
+
 import logging
+from typing import Any, Optional
+
 from ..api_client import ThingsPanelClient
+from ..tool_results import (
+    DeviceConfigInfo,
+    DeviceDetailData,
+    DeviceDetailResult,
+    DeviceInfo,
+    DeviceItem,
+    DeviceListData,
+    DeviceListResult,
+    DeviceStatusData,
+    DeviceStatusResult,
+    make_error,
+)
 
 logger = logging.getLogger(__name__)
 
-async def list_devices(search: Optional[str] = None, page: int = 1, page_size: int = 10) -> str:
-    """
-    可以根据用户说出来的设备名称或设备编号进行模糊搜索，获取设备ID、设备名称、设备编号、在线状态、激活状态、创建时间
-    注意：支持大小写不敏感的模糊搜索，如果1次没搜索到可尝试分词搜索，按自然单词或者空格拆分，如果分词搜索也没搜索到就及时反馈用户
-    """
+
+def _as_bool(value: Any) -> Optional[bool]:
+    if value is True or value == 1 or value == "1" or value == "enabled":
+        return True
+    if value is False or value == 0 or value == "0" or value == "disabled":
+        return False
+    return None
+
+
+async def list_devices(search: Optional[str] = None, page: int = 1, page_size: int = 10) -> DeviceListResult:
+    """按名称或设备编号搜索设备，返回设备字段和分页信息。"""
     client = ThingsPanelClient()
     try:
         result = await client.get_devices(page=page, page_size=page_size, search=search)
-        
         if result.get("code") != 200:
-            return f"获取设备列表失败：{result.get('message', '未知错误')}"
-        
-        devices = result.get("data", {}).get("list", [])
-        total = result.get("data", {}).get("total", 0)
-        
-        if not devices:
-            return "没有找到符合条件的设备。"
-        
-        device_info = []
-        for device in devices:
-            status = "在线" if device.get("is_online") == 1 else "离线"
-            
-            # 检查激活状态
-            activate_status = "未激活"
-            if device.get("activate_flag") == "active":
-                activate_status = "已激活"
-                
-            device_info.append(
-                f"设备ID: {device.get('id')}\n"
-                f"设备名称: {device.get('name')}\n"
-                f"设备编号: {device.get('device_number')}\n"
-                f"设备模板类型: {device.get('device_config_name', '未设置')}\n"
-                f"配置类型: {device.get('access_way', '未知')}\n"
-                f"在线状态: {status}\n"
-                f"激活状态: {activate_status}\n"
-                f"创建时间: {device.get('created_at', '未知')}\n"
+            return DeviceListResult(
+                ok=False,
+                summary="获取设备列表失败。",
+                error=make_error(result.get("code"), result.get("message"), "获取设备列表失败。"),
             )
-        
-        header = f"共找到 {total} 个设备，当前显示第 {page} 页，每页 {page_size} 条：\n\n"
-        return header + "\n".join(device_info)
-    
-    except Exception as e:
-        logger.error(f"获取设备列表出错: {str(e)}")
-        return f"获取设备列表时发生错误: {str(e)}"
 
-async def get_device_detail(device_id: str) -> str:
-    """
-    根据设备ID获取设备详细信息
-    
-    参数:
-    device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
-    """
+        result_data = result.get("data") or {}
+        raw_devices = result_data.get("list") or []
+        devices = [DeviceItem(
+            id=item.get("id"),
+            name=item.get("name"),
+            device_number=item.get("device_number"),
+            device_config_name=item.get("device_config_name"),
+            access_way=item.get("access_way"),
+            is_online=_as_bool(item.get("is_online")),
+            activate_flag=item.get("activate_flag"),
+            is_enabled=item.get("is_enabled"),
+            created_at=item.get("created_at"),
+        ) for item in raw_devices]
+        total = result_data.get("total", 0)
+        return DeviceListResult(
+            ok=True,
+            summary=f"找到 {total} 个设备，当前显示第 {page} 页。" if devices else "没有找到符合条件的设备。",
+            data=DeviceListData(devices=devices, total=total, page=page, page_size=page_size),
+        )
+    except Exception as exc:
+        logger.error("获取设备列表出错: %s", exc.__class__.__name__)
+        return DeviceListResult(
+            ok=False,
+            summary="获取设备列表时发生错误。",
+            error=make_error("request_failed", str(exc), "获取设备列表时发生错误。"),
+        )
+
+
+async def get_device_detail(device_id: str) -> DeviceDetailResult:
+    """读取设备详情，包括连接、启用、激活和配置信息。"""
     client = ThingsPanelClient()
     try:
         result = await client.get_device_detail(device_id)
-        
         if result.get("code") != 200:
-            return f"获取设备详情失败：{result.get('message', '未知错误')}"
-        
-        device = result.get("data", {})
-        if not device:
-            return f"未找到设备 {device_id} 的详情信息。"
-        
-        is_online = "在线" if device.get("is_online") == 1 else "离线"
-        activate_flag = "已激活" if device.get("activate_flag") == "active" else "未激活"
-        is_enabled = "已启用" if device.get("is_enabled") == "enabled" else "已禁用"
-        
-        detail_info = (
-            f"设备ID: {device.get('id')}\n"
-            f"设备名称: {device.get('name')}\n"
-            f"设备编号: {device.get('device_number', '未设置')}\n"
-            f"在线状态: {is_online}\n"
-            f"激活状态: {activate_flag}\n"
-            f"启用状态: {is_enabled}\n"
-            f"接入方式: {device.get('access_way', '未知')}\n"
-            f"创建时间: {device.get('created_at', '未知')}\n"
-            f"更新时间: {device.get('update_at', '未知')}\n"
-        )
-        
-        # 如果有设备配置信息，添加到详情中
-        if device.get("device_config"):
-            config = device.get("device_config", {})
-            detail_info += (
-                f"\n设备配置信息:\n"
-                f"配置名称: {config.get('name', '未知')}\n"
-                f"设备类型: {config.get('device_type', '未知')}\n"
-                f"协议类型: {config.get('protocol_type', '未知')}\n"
-                f"凭证类型: {config.get('voucher_type', '未知')}\n"
+            return DeviceDetailResult(
+                ok=False,
+                summary="获取设备详情失败。",
+                error=make_error(result.get("code"), result.get("message"), "获取设备详情失败。"),
             )
-        
-        return detail_info
-    
-    except Exception as e:
-        logger.error(f"获取设备详情出错: {str(e)}")
-        return f"获取设备详情时发生错误: {str(e)}"
 
-async def check_device_status(device_id: str) -> str:
-    """
-    检查设备的在线状态
+        device = result.get("data") or {}
+        if not device:
+            return DeviceDetailResult(
+                ok=False,
+                summary=f"未找到设备 {device_id}。",
+                error=make_error("not_found", "设备不存在。", f"未找到设备 {device_id}。"),
+            )
 
-    参数:
-    device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
-    """
+        config = device.get("device_config")
+        detail = DeviceInfo(
+            id=device.get("id"),
+            name=device.get("name"),
+            device_number=device.get("device_number"),
+            is_online=_as_bool(device.get("is_online")),
+            activate_flag=device.get("activate_flag"),
+            is_enabled=device.get("is_enabled"),
+            access_way=device.get("access_way"),
+            created_at=device.get("created_at"),
+            update_at=device.get("update_at"),
+            device_config=DeviceConfigInfo(**{
+                key: config.get(key)
+                for key in ("name", "device_type", "protocol_type", "voucher_type")
+            }) if isinstance(config, dict) else None,
+        )
+        return DeviceDetailResult(
+            ok=True,
+            summary=f"已获取设备 {detail.name or device_id} 的详情。",
+            data=DeviceDetailData(device=detail),
+        )
+    except Exception as exc:
+        logger.error("获取设备详情出错: %s", exc.__class__.__name__)
+        return DeviceDetailResult(
+            ok=False,
+            summary="获取设备详情时发生错误。",
+            error=make_error("request_failed", str(exc), "获取设备详情时发生错误。"),
+        )
+
+
+async def check_device_status(device_id: str) -> DeviceStatusResult:
+    """查询设备连接状态。这个接口不代表设备是否启用。"""
     client = ThingsPanelClient()
     try:
         result = await client.get_device_online_status(device_id)
-        
         if result.get("code") != 200:
-            return f"获取设备状态失败：{result.get('message', '未知错误')}"
-        
-        status_data = result.get("data", {})
-        is_online = status_data.get("is_online", 0)
-        
-        if is_online == 1:
-            return f"设备 {device_id} 当前状态：在线"
-        else:
-            return f"设备 {device_id} 当前状态：离线"
-    
-    except Exception as e:
-        logger.error(f"检查设备状态出错: {str(e)}")
-        return f"检查设备状态时发生错误: {str(e)}"
+            return DeviceStatusResult(
+                ok=False,
+                summary="获取设备连接状态失败。",
+                error=make_error(result.get("code"), result.get("message"), "获取设备连接状态失败。"),
+            )
+
+        raw_online = (result.get("data") or {}).get("is_online")
+        is_online = _as_bool(raw_online)
+        status = "online" if is_online is True else "offline" if is_online is False else "unknown"
+        label = {"online": "在线", "offline": "离线", "unknown": "未知"}[status]
+        return DeviceStatusResult(
+            ok=True,
+            summary=f"设备 {device_id} 当前连接状态：{label}。",
+            data=DeviceStatusData(device_id=device_id, status=status, is_online=is_online),
+        )
+    except Exception as exc:
+        logger.error("检查设备状态出错: %s", exc.__class__.__name__)
+        return DeviceStatusResult(
+            ok=False,
+            summary="检查设备连接状态时发生错误。",
+            error=make_error("request_failed", str(exc), "检查设备连接状态时发生错误。"),
+        )
