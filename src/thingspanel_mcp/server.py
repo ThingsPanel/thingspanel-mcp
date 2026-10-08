@@ -23,25 +23,26 @@ class ThingsPanelServer:
     def _setup_tools(self):
         """设置服务器工具"""
         # 设备相关工具
-        self.server.tool()(device_tools.list_devices)
-        self.server.tool()(device_tools.get_device_detail)
-        self.server.tool()(device_tools.check_device_status)
+        self.server.tool(structured_output=True)(device_tools.list_devices)
+        self.server.tool(structured_output=True)(device_tools.get_device_detail)
+        self.server.tool(structured_output=True)(device_tools.check_device_status)
         
         # 遥测数据相关工具
-        self.server.tool()(telemetry_tools.get_device_telemetry)
-        self.server.tool()(telemetry_tools.get_telemetry_by_key)
-        self.server.tool()(telemetry_tools.get_telemetry_history)
+        self.server.tool(structured_output=True)(telemetry_tools.get_device_telemetry)
+        self.server.tool(structured_output=True)(telemetry_tools.get_telemetry_by_key)
+        self.server.tool(structured_output=True)(telemetry_tools.get_telemetry_history)
         
         # 看板相关工具
-        self.server.tool()(dashboard_tools.get_tenant_summary)
-        self.server.tool()(dashboard_tools.get_device_trend_report)
+        self.server.tool(structured_output=True)(dashboard_tools.get_tenant_summary)
+        self.server.tool(structured_output=True)(dashboard_tools.get_device_trend_report)
         
         # 设备控制相关工具
-        self.server.tool()(control_tools.get_device_model_info)
-        self.server.tool()(control_tools.control_device_telemetry)
-        self.server.tool()(control_tools.set_device_attributes)
-        self.server.tool()(control_tools.send_device_command)
-        self.server.tool()(control_tools.control_device_with_model_check)
+        self.server.tool(structured_output=True)(control_tools.get_device_model_info)
+        self.server.tool(structured_output=True)(control_tools.control_device_telemetry)
+        self.server.tool(structured_output=True)(control_tools.set_device_attributes)
+        self.server.tool(structured_output=True)(control_tools.send_device_command)
+        self.server.tool(structured_output=True)(control_tools.get_device_command_status)
+        self.server.tool(structured_output=True)(control_tools.control_device_with_model_check)
 
         # 为源码清单中的每个 API 操作注册独立的 allow-listed MCP tool。
         self.api_tool_count = register_api_tools(self.server)

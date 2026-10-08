@@ -6,17 +6,19 @@
 
 ThingsPanel MCP 将 MCP 兼容的 AI 助手连接到 ThingsPanel 和 ThingsVis API。它同时提供面向物联网场景的快捷工具，以及绑定固定、经过源码审计的 API 路由工具。
 
-[English](https://github.com/ThingsPanel/thingspanel-mcp/blob/codex/release-0.1.10/README.md) | [中文](https://github.com/ThingsPanel/thingspanel-mcp/blob/codex/release-0.1.10/README_CN.md)
+[English](https://github.com/ThingsPanel/thingspanel-mcp/blob/main/README.md) | [中文](https://github.com/ThingsPanel/thingspanel-mcp/blob/main/README_CN.md)
 
 ## 功能范围
 
-- 共注册 376 个 MCP 工具：363 个自动生成的 API 工具，以及 13 个设备、遥测、看板和控制快捷工具。
-- 生成的 API 工具覆盖 311 个 ThingsPanel 与 52 个 ThingsVis 操作，包括设备、遥测、告警、分组、产品、服务接入、看板和文件上传。
-- 生成工具中有 177 个读取操作；其余 186 个写入或控制操作要求传入 confirmed=true。
+- 共注册 378 个 MCP 工具：364 个自动生成的 API 工具，以及 14 个设备、遥测、看板和控制快捷工具。
+- 生成的 API 工具覆盖 312 个 ThingsPanel 与 52 个 ThingsVis 操作，包括设备、遥测、告警、分组、产品、服务接入、看板和文件上传。
+- 生成工具中有 178 个读取操作；其余 186 个写入或控制操作要求传入 confirmed=true。
 - 返回结构化 JSON，检查业务错误码，安全编码路径参数，支持文件上传，并限制 SSE/WebSocket 的读取时长和消息数量。
 - 支持 ThingsPanel 与 ThingsVis 认证 profile；实际权限始终由连接的服务端校验。
 
 完整的 API allow-list 位于 src/thingspanel_mcp/api_manifest.json。每个生成工具绑定固定的 HTTP 方法和路由；调用方只传 path_params、query、body 以及可选的 file_path。
+
+14 个快捷工具返回类型化的 MCP `structuredContent`，包含 `ok`、`summary`、`data`、`error` 字段。程序判断请读取 `ok` 和 `data`；`summary` 供人阅读。`send_device_command` 在服务端返回时会提供 `message_id`，可传给 `get_device_command_status` 查询命令回执。“已受理”不等于设备已执行。
 
 ## 环境要求与安装
 
@@ -43,7 +45,7 @@ ThingsPanel 社区版支持 SYS_ADMIN 和 TENANT_ADMIN，不包含租户下的�
 
 ThingsVis 凭证与 ThingsPanel 凭证分开配置。ThingsVis SSO 使用所选 profile 中的 ThingsPanel JWT；ThingsVis 服务端会验证该 JWT，并从验证后的身份派生角色。MCP 调用方不能在参数中提交角色或其他用户身份来提升权限。
 
-为每个身份配置 profile。未显式传入 profile 时使用 default。13 个快捷工具固定使用 default profile；363 个生成 API 工具支持显式传入 profile。
+为每个身份配置 profile。未显式传入 profile 时使用 default。14 个快捷工具固定使用 default profile；364 个生成 API 工具支持显式传入 profile。
 
 创建 ~/.thingspanel/config.json：
 
@@ -102,7 +104,7 @@ ThingsVis 凭证与 ThingsPanel 凭证分开配置。ThingsVis SSO 使用所选 
 
     [mcp_servers.thingspanel]
     command = "uvx"
-    args = ["--from", "thingspanel-mcp==0.1.10", "thingspanel-mcp"]
+    args = ["--from", "thingspanel-mcp==0.1.11", "thingspanel-mcp"]
 
     [mcp_servers.thingspanel.env]
     THINGSPANEL_CONFIG_PATH = "/绝对路径/.thingspanel/config.json"
@@ -117,7 +119,7 @@ ThingsVis 凭证与 ThingsPanel 凭证分开配置。ThingsVis SSO 使用所选 
       "mcpServers": {
         "thingspanel": {
           "command": "uvx",
-          "args": ["--from", "thingspanel-mcp==0.1.10", "thingspanel-mcp"],
+          "args": ["--from", "thingspanel-mcp==0.1.11", "thingspanel-mcp"],
           "env": {
             "THINGSPANEL_CONFIG_PATH": "/绝对路径/.thingspanel/config.json"
           }
@@ -134,7 +136,7 @@ ThingsVis 凭证与 ThingsPanel 凭证分开配置。ThingsVis SSO 使用所选 
         "thingspanel": {
           "type": "stdio",
           "command": "uvx",
-          "args": ["--from", "thingspanel-mcp==0.1.10", "thingspanel-mcp"],
+          "args": ["--from", "thingspanel-mcp==0.1.11", "thingspanel-mcp"],
           "env": {
             "THINGSPANEL_CONFIG_PATH": "/绝对路径/.thingspanel/config.json"
           }

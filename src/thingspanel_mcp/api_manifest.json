@@ -2988,6 +2988,22 @@
     },
     {
       "service": "thingspanel",
+      "method": "GET",
+      "path": "/api/v1/command/datas/status/:message_id",
+      "summary": "查询单条设备命令回执状态",
+      "source": "router/apps/command_data.go:21",
+      "security": "thingspanel_jwt_casbin",
+      "enabled": true,
+      "notes": "查询命令下发后的设备回执；不代表设备物理状态已回读。",
+      "tool_name": "tp_get_command_datas_status_by_message_id",
+      "path_parameters": [
+        "message_id"
+      ],
+      "stream": null,
+      "destructive": false
+    },
+    {
+      "service": "thingspanel",
       "method": "POST",
       "path": "/api/v1/data_script",
       "summary": "ThingsPanel API POST /api/v1/data_script",

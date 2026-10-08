@@ -1,363 +1,334 @@
-from typing import Dict, List, Any, Optional, Union
-import logging
+"""Device model, control, and command receipt tools."""
+
 import json
+import logging
+from typing import Any, Dict, List, Optional, Union
+
 from ..api_client import ThingsPanelClient
+from ..tool_results import (
+    CommandStatusData,
+    CommandStatusResult,
+    DeviceModelData,
+    DeviceModelResult,
+    ModelCheckedControlData,
+    ModelCheckedControlResult,
+    ModelDefinition,
+    OperationData,
+    OperationResult,
+    make_error,
+)
 
 logger = logging.getLogger(__name__)
+MODEL_TYPES = ("telemetry", "attributes", "commands", "events")
 
-async def get_device_model_info(device_id: str, model_type: str = "all") -> str:
-    """
-    获取设备物模型信息
-    
-    参数:
-        device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
-        model_type: 物模型类型，可选值：'all'、'telemetry'、'attributes'、'commands'、'events';在控制设备前，建议使用all查询。
-    
-    返回:
-        格式化的物模型信息文本
-    """
+
+def _parse_object(value: Union[Dict[str, Any], str], *, allow_pair: bool = True) -> Dict[str, Any]:
+    if isinstance(value, dict):
+        return value
+    if not isinstance(value, str):
+        raise ValueError("输入必须是 JSON 对象或字符串")
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError:
+        if not allow_pair or "=" not in value:
+            raise ValueError("输入格式无效，请提供 JSON 对象或 key=value")
+        key, raw_value = value.split("=", 1)
+        raw_value = raw_value.strip()
+        if raw_value.lower() in ("true", "false"):
+            parsed_value: Any = raw_value.lower() == "true"
+        else:
+            try:
+                parsed_value = int(raw_value)
+            except ValueError:
+                try:
+                    parsed_value = float(raw_value)
+                except ValueError:
+                    parsed_value = raw_value
+        return {key.strip(): parsed_value}
+    if not isinstance(parsed, dict):
+        raise ValueError("输入必须是 JSON 对象")
+    return parsed
+
+
+async def get_device_model_info(device_id: str, model_type: str = "all") -> DeviceModelResult:
+    """读取设备模板及其遥测、属性、命令和事件定义。"""
     client = ThingsPanelClient()
     try:
-        # 首先获取设备详情，找到设备模板ID
         device_detail = await client.get_device_detail(device_id)
-        
         if device_detail.get("code") != 200:
-            return f"获取设备详情失败：{device_detail.get('message', '未知错误')}"
-        
-        device_data = device_detail.get("data", {})
-        
-        # 从device_config字段中获取设备模板ID
-        device_config = device_data.get("device_config", {})
-        device_template_id = device_config.get("device_template_id")
-        
-        if not device_template_id:
-            return f"设备 {device_id} 未关联设备模板，无法获取物模型信息。设备配置信息：{json.dumps(device_config, ensure_ascii=False)}"
-        
-        formatted_info = [f"# 设备 {device_id} 物模型信息\n"]
-        formatted_info.append(f"设备模板ID: {device_template_id}\n")
-        
-        # 确定需要查询的模型类型
-        model_types = []
-        if model_type.lower() == "all":
-            model_types = ["telemetry", "attributes", "commands", "events"]
-        else:
-            model_types = [model_type.lower()]
-        
-        # 查询每种模型类型
-        for type_name in model_types:
-            endpoint = f"/api/v1/device/model/{type_name}"
-            
-            # 查询指定类型的物模型
-            model_result = await client._request("GET", endpoint, params={
+            return DeviceModelResult(
+                ok=False,
+                summary="获取设备详情失败，无法读取物模型。",
+                error=make_error(device_detail.get("code"), device_detail.get("message"), "获取设备详情失败。"),
+            )
+        device_data = device_detail.get("data") or {}
+        device_config = device_data.get("device_config") or {}
+        template_id = device_config.get("device_template_id")
+        if not template_id:
+            return DeviceModelResult(
+                ok=False,
+                summary=f"设备 {device_id} 未关联设备模板。",
+                error=make_error("template_missing", "设备未关联设备模板。", "设备未关联设备模板。"),
+            )
+
+        requested = list(MODEL_TYPES) if model_type.lower() == "all" else [model_type.lower()]
+        if any(name not in MODEL_TYPES for name in requested):
+            return DeviceModelResult(
+                ok=False,
+                summary="物模型类型参数无效。",
+                error=make_error("invalid_model_type", "支持 all、telemetry、attributes、commands、events。", "物模型类型参数无效。"),
+            )
+
+        definitions: Dict[str, List[ModelDefinition]] = {name: [] for name in requested}
+        failures = []
+        for name in requested:
+            result = await client._request("GET", f"/api/v1/device/model/{name}", params={
                 "page": 1,
                 "page_size": 100,
-                "device_template_id": device_template_id
+                "device_template_id": template_id,
             })
-            
-            if model_result.get("code") != 200:
-                formatted_info.append(f"\n## {type_name.capitalize()} 查询失败\n")
-                formatted_info.append(f"错误信息: {model_result.get('message', '未知错误')}\n")
+            if result.get("code") != 200:
+                failures.append(f"{name}: {result.get('message', 'query failed')}")
                 continue
-            
-            # 提取模型列表
-            model_list = model_result.get("data", {}).get("list", [])
-            
-            # 显示类型标题
-            type_display_map = {
-                "telemetry": "遥测",
-                "attributes": "属性",
-                "commands": "命令",
-                "events": "事件"
-            }
-            type_display = type_display_map.get(type_name, type_name.capitalize())
-            formatted_info.append(f"\n## {type_display} ({type_name})\n")
-            
-            if not model_list:
-                formatted_info.append(f"没有找到任何{type_display}定义\n")
-                continue
-            
-            # 处理命令类型的特殊情况
-            if type_name == "commands":
-                for item in model_list:
-                    item_name = item.get("data_name", "未知")
-                    item_id = item.get("data_identifier", "未知")
-                    
-                    formatted_info.append(f"### {item_name} (`{item_id}`)\n")
-                    
-                    # 处理命令参数
-                    params_str = item.get("params", "[]")
+            entries = (result.get("data") or {}).get("list") or []
+            for entry in entries:
+                params = entry.get("params", [])
+                if isinstance(params, str):
                     try:
-                        params = json.loads(params_str) if isinstance(params_str, str) else params_str
+                        params = json.loads(params)
                     except json.JSONDecodeError:
                         params = []
-                    
-                    if params and isinstance(params, list):
-                        formatted_info.append("参数列表:\n")
-                        for param in params:
-                            if isinstance(param, dict):
-                                param_name = param.get("name", "")
-                                param_type = param.get("type", "")
-                                param_desc = param.get("description", "")
-                                param_required = "是" if param.get("required", False) else "否"
-                                
-                                formatted_info.append(f"- **{param_name}** (类型: {param_type}, 必填: {param_required})")
-                                if param_desc:
-                                    formatted_info.append(f"  描述: {param_desc}")
-                    
-                    # 生成命令示例
-                    formatted_info.append("\n使用示例:")
-                    example_params = {}
-                    if params and isinstance(params, list):
-                        for param in params:
-                            if isinstance(param, dict) and "name" in param:
-                                # 根据类型生成示例值
-                                param_type = param.get("type", "").lower()
-                                if param_type == "string":
-                                    example_params[param["name"]] = "value"
-                                elif param_type == "number":
-                                    example_params[param["name"]] = 0
-                                elif param_type == "boolean":
-                                    example_params[param["name"]] = False
-                                else:
-                                    example_params[param["name"]] = "value"
-                    
-                    example_cmd = {
-                        "method": item_id,
-                        "params": example_params
-                    }
-                    formatted_info.append(f"```json\n{json.dumps(example_cmd, ensure_ascii=False, indent=2)}\n```\n")
-            else:
-                # 处理其他类型的物模型
-                for item in model_list:
-                    item_name = item.get("data_name", "未知")
-                    item_id = item.get("data_identifier", "未知")
-                    data_type = item.get("data_type", "未知")
-                    unit = item.get("unit", "")
-                    read_write = item.get("read_write_flag", "")
-                    
-                    rw_display = ""
-                    if read_write == "R":
-                        rw_display = "只读"
-                    elif read_write == "W":
-                        rw_display = "只写"
-                    elif read_write == "RW":
-                        rw_display = "可读写"
-                    
-                    unit_display = f", 单位: {unit}" if unit else ""
-                    rw_display = f", 权限: {rw_display}" if rw_display else ""
-                    
-                    formatted_info.append(f"- **{item_name}** (标识符: `{item_id}`, 类型: {data_type}{unit_display}{rw_display})")
-        
-        return "\n".join(formatted_info)
-    
-    except Exception as e:
-        logger.error(f"获取设备物模型信息出错: {str(e)}")
-        return f"获取设备物模型信息时发生错误: {str(e)}"
+                definitions[name].append(ModelDefinition(
+                    data_name=entry.get("data_name"),
+                    data_identifier=entry.get("data_identifier"),
+                    data_type=entry.get("data_type"),
+                    unit=entry.get("unit"),
+                    read_write_flag=entry.get("read_write_flag"),
+                    params=params if isinstance(params, list) else [],
+                ))
 
-async def control_device_telemetry(device_id: str, control_data: Union[Dict[str, Any], str]) -> str:
-    """
-    发送遥测数据控制设备 - 通用接口，可用于控制任何类型的遥测数据，物模型中带可写权限的遥测数据
-    
-    参数:
-        device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
-        control_data: 控制数据，格式如 {"temperature": 28.5, "light": 2000, "switch": true}
-    """
+        model_data = DeviceModelData(
+            device_id=device_id,
+            device_template_id=template_id,
+            model_type=model_type.lower(),
+            definitions=definitions,
+        )
+        if failures:
+            return DeviceModelResult(
+                ok=False,
+                summary=f"物模型部分读取失败：{'; '.join(failures)}",
+                data=model_data,
+                error=make_error("partial_failure", "; ".join(failures), "部分物模型读取失败。"),
+            )
+        count = sum(len(items) for items in definitions.values())
+        return DeviceModelResult(
+            ok=True,
+            summary=f"已读取设备 {device_id} 的 {count} 条物模型定义。",
+            data=model_data,
+        )
+    except Exception as exc:
+        logger.error("获取设备物模型出错: %s", exc.__class__.__name__)
+        return DeviceModelResult(
+            ok=False,
+            summary="获取设备物模型时发生错误。",
+            error=make_error("request_failed", str(exc), "获取设备物模型时发生错误。"),
+        )
+
+
+async def control_device_telemetry(device_id: str, control_data: Union[Dict[str, Any], str]) -> OperationResult:
+    """向设备发布可写遥测控制值。返回平台受理结果，不表示设备已执行。"""
     client = ThingsPanelClient()
     try:
-        # 处理不同格式的输入
-        if isinstance(control_data, str):
-            # 尝试解析为JSON
-            try:
-                control_json = json.loads(control_data)
-            except json.JSONDecodeError:
-                # 不是JSON格式，尝试解析为key=value格式
-                if "=" in control_data:
-                    key, value = control_data.split("=", 1)
-                    try:
-                        # 尝试将值转换为适当的类型
-                        if value.lower() == "true":
-                            parsed_value = True
-                        elif value.lower() == "false":
-                            parsed_value = False
-                        elif value.isdigit():
-                            parsed_value = int(value)
-                        elif "." in value and all(part.isdigit() for part in value.split(".", 1)):
-                            parsed_value = float(value)
-                        else:
-                            parsed_value = value
-                        control_json = {key.strip(): parsed_value}
-                    except:
-                        control_json = {key.strip(): value.strip()}
-                else:
-                    return f"控制数据格式错误，请提供有效的格式: JSON或key=value"
-        else:
-            control_json = control_data
-        
-        # 按照API要求，确保value是JSON字符串
-        data = {
+        values = _parse_object(control_data)
+        result = await client._request("POST", "/api/v1/telemetry/datas/pub", json_data={
             "device_id": device_id,
-            "value": json.dumps(control_json)
-        }
-        
-        # 发送请求
-        result = await client._request("POST", "/api/v1/telemetry/datas/pub", json_data=data)
-        
+            "value": json.dumps(values),
+        })
         if result.get("code") != 200:
-            return f"发送遥测控制命令失败：{result.get('message', '未知错误')}"
-        
-        return f"成功向设备 {device_id} 发送遥测控制命令: {json.dumps(control_json, ensure_ascii=False)}"
-    
-    except Exception as e:
-        logger.error(f"发送遥测控制命令出错: {str(e)}")
-        return f"发送遥测控制命令时发生错误: {str(e)}"
+            return OperationResult(
+                ok=False,
+                summary="遥测控制请求失败。",
+                error=make_error(result.get("code"), result.get("message"), "遥测控制请求失败。"),
+            )
+        return OperationResult(
+            ok=True,
+            summary=f"设备 {device_id} 的遥测控制请求已受理。",
+            data=OperationData(device_id=device_id, operation="telemetry_control", request=values,
+                               accepted=True, status="accepted"),
+        )
+    except ValueError as exc:
+        return OperationResult(ok=False, summary="控制数据格式错误。",
+                               error=make_error("invalid_input", str(exc), "控制数据格式错误。"))
+    except Exception as exc:
+        logger.error("发送遥测控制出错: %s", exc.__class__.__name__)
+        return OperationResult(ok=False, summary="发送遥测控制时发生错误。",
+                               error=make_error("request_failed", str(exc), "发送遥测控制时发生错误。"))
 
-async def set_device_attributes(device_id: str, attribute_data: Union[Dict[str, Any], str]) -> str:
-    """
-    设置设备属性 - 通用接口，可用于设置任何类型的设备属性
-    
-    参数:
-        device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
-        attribute_data: 属性数据，格式如 {"ip": "127.0.0.1", "mac": "xx:xx:xx:xx:xx:xx", "port": 1883}
-    """
+
+async def set_device_attributes(device_id: str, attribute_data: Union[Dict[str, Any], str]) -> OperationResult:
+    """设置设备属性并返回平台受理状态。"""
     client = ThingsPanelClient()
     try:
-        # 处理不同格式的输入
-        if isinstance(attribute_data, str):
-            # 尝试解析为JSON
-            try:
-                attribute_json = json.loads(attribute_data)
-            except json.JSONDecodeError:
-                # 不是JSON格式，尝试解析为key=value格式
-                if "=" in attribute_data:
-                    key, value = attribute_data.split("=", 1)
-                    attribute_json = {key.strip(): value.strip()}
-                else:
-                    return f"属性数据格式错误，请提供有效的格式: JSON或key=value"
-        else:
-            attribute_json = attribute_data
-        
-        # 按照API要求，确保value是JSON字符串
-        data = {
+        values = _parse_object(attribute_data)
+        result = await client._request("POST", "/api/v1/attribute/datas/pub", json_data={
             "device_id": device_id,
-            "value": json.dumps(attribute_json)
-        }
-        
-        # 发送请求
-        result = await client._request("POST", "/api/v1/attribute/datas/pub", json_data=data)
-        
+            "value": json.dumps(values),
+        })
         if result.get("code") != 200:
-            return f"设置设备属性失败：{result.get('message', '未知错误')}"
-        
-        return f"成功设置设备 {device_id} 的属性: {json.dumps(attribute_json, ensure_ascii=False)}"
-    
-    except Exception as e:
-        logger.error(f"设置设备属性出错: {str(e)}")
-        return f"设置设备属性时发生错误: {str(e)}"
+            return OperationResult(
+                ok=False,
+                summary="设置设备属性失败。",
+                error=make_error(result.get("code"), result.get("message"), "设置设备属性失败。"),
+            )
+        return OperationResult(
+            ok=True,
+            summary=f"设备 {device_id} 的属性设置请求已受理。",
+            data=OperationData(device_id=device_id, operation="attribute_set", request=values,
+                               accepted=True, status="accepted"),
+        )
+    except ValueError as exc:
+        return OperationResult(ok=False, summary="属性数据格式错误。",
+                               error=make_error("invalid_input", str(exc), "属性数据格式错误。"))
+    except Exception as exc:
+        logger.error("设置设备属性出错: %s", exc.__class__.__name__)
+        return OperationResult(ok=False, summary="设置设备属性时发生错误。",
+                               error=make_error("request_failed", str(exc), "设置设备属性时发生错误。"))
 
-async def send_device_command(device_id: str, command_data: Union[Dict[str, Any], str], command_identifier: Optional[str] = None) -> str:
-    """
-    向设备发送控制命令，比如：打开卧室灯，在发送控件命令前，必须通过get_device_model_info查询设备物模型，确保命令名称和参数符合设备物模型要求。
-    
-    参数:
-        device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
-        command_data: 命令数据，格式如 {"method": "ReSet", "params": {"switch": 1, "light": "close"}}
-        command_identifier: 命令标识符，如果提供则使用此标识符
-    
-    注意:
-        在发送命令前，应先使用get_device_model_info函数查询设备物模型，确保控制命令名称和参数符合设备物模型要求。
-    """
+
+async def send_device_command(
+    device_id: str,
+    command_data: Union[Dict[str, Any], str],
+    command_identifier: Optional[str] = None,
+) -> OperationResult:
+    """下发命令；返回 message_id 供 get_device_command_status 查询回执。"""
     client = ThingsPanelClient()
     try:
-        # 处理不同格式的输入
-        if isinstance(command_data, str):
-            # 尝试解析为JSON
-            try:
-                command_json = json.loads(command_data)
-            except json.JSONDecodeError:
-                return f"命令数据格式错误，请提供有效的JSON格式。建议先使用get_device_model_info查询设备支持的命令。"
-        else:
-            command_json = command_data
-        
-        # 提取方法名，用于日志和提示
-        method_name = "未知"
-        if isinstance(command_json, dict) and "method" in command_json:
-            method_name = command_json.get("method")
-        
-        # 添加物模型检查提示
-        logger.info(f"准备向设备 {device_id} 发送 {method_name} 命令，请确保已通过get_device_model_info检查过设备物模型")
-        
-        # 从命令数据中提取标识符，如果没有提供
-        if not command_identifier:
-            if isinstance(command_json, dict) and "method" in command_json:
-                command_identifier = command_json.get("method")
-            else:
-                command_identifier = "command"  # 使用默认值
-        
-        # 从命令中提取params部分作为value
-        params_value = None
-        if isinstance(command_json, dict) and "params" in command_json:
-            params_value = command_json.get("params")
-        
-        # 构建请求数据
-        data = {
-            "device_id": device_id,
-            "Identify": command_identifier
-        }
-        
-        # 只有当params存在时才添加value字段
-        if params_value is not None:
-            data["value"] = json.dumps(params_value)
-        
-        # 发送请求
-        result = await client._request("POST", "/api/v1/command/datas/pub", json_data=data)
-        
+        command = _parse_object(command_data, allow_pair=False)
+        method_name = command.get("method")
+        identifier = command_identifier or method_name or "command"
+        params = command.get("params")
+        request = {"method": identifier, "params": params}
+        body = {"device_id": device_id, "Identify": identifier}
+        if params is not None:
+            body["value"] = json.dumps(params)
+        result = await client._request("POST", "/api/v1/command/datas/pub", json_data=body)
         if result.get("code") != 200:
-            return f"发送设备命令失败：{result.get('message', '未知错误')}。建议检查设备物模型确认命令格式是否正确。"
-        
-        return f"成功向设备 {device_id} 发送命令: {method_name}，参数: {json.dumps(params_value, ensure_ascii=False)}"
-    
-    except Exception as e:
-        logger.error(f"发送设备命令出错: {str(e)}")
-        return f"发送设备命令时发生错误: {str(e)}"
+            return OperationResult(
+                ok=False,
+                summary="设备命令下发失败。",
+                error=make_error(result.get("code"), result.get("message"), "设备命令下发失败。"),
+            )
+        receipt = result.get("data") if isinstance(result.get("data"), dict) else result
+        message_id = receipt.get("message_id")
+        status = receipt.get("status", "accepted")
+        summary = "命令已受理，可查询设备回执。" if message_id else "命令已受理，但服务端未返回回执 ID。"
+        return OperationResult(
+            ok=True,
+            summary=summary,
+            data=OperationData(device_id=device_id, operation="command", request=request,
+                               accepted=True, message_id=message_id, status=status),
+        )
+    except ValueError as exc:
+        return OperationResult(ok=False, summary="命令数据格式错误。",
+                               error=make_error("invalid_input", str(exc), "命令数据格式错误。"))
+    except Exception as exc:
+        logger.error("发送设备命令出错: %s", exc.__class__.__name__)
+        return OperationResult(ok=False, summary="发送设备命令时发生错误。",
+                               error=make_error("request_failed", str(exc), "发送设备命令时发生错误。"))
 
-async def control_device_with_model_check(device_id: str, command_type: str, command_data: Union[Dict[str, Any], str]) -> str:
-    """
-    先查询物模型，然后再发送控制命令的标准流程
-    
-    参数:
-        device_id: 设备ID示例"4f7040db-8a9c-4c81-d85b-fe574b8a3fa9"，如果只知道设备名称，请先模糊搜索列表确认具体是哪个设备ID
-        command_type: 命令类型，可选值：'telemetry'、'attribute'、'command'
-        command_data: 命令数据
-    
-    返回:
-        物模型信息和命令执行结果
-    """
-    # 映射命令类型到物模型类型
-    model_type_map = {
-        'telemetry': 'telemetry',
-        'attribute': 'attributes',
-        'command': 'commands'
-    }
-    
-    # 获取对应的物模型类型
-    model_type = model_type_map.get(command_type.lower())
+
+async def get_device_command_status(message_id: str) -> CommandStatusResult:
+    """按下发返回的 message_id 查询设备命令回执状态。"""
+    client = ThingsPanelClient()
+    try:
+        result = await client._request("GET", f"/api/v1/command/datas/status/{message_id}")
+        if result.get("code") != 200:
+            return CommandStatusResult(
+                ok=False,
+                summary="查询命令回执失败。",
+                error=make_error(result.get("code"), result.get("message"), "查询命令回执失败。"),
+            )
+        response = result.get("data") if isinstance(result.get("data"), dict) else result
+        status = response.get("status", "unknown")
+        allowed = {"accepted", "published", "publish_failed", "device_succeeded", "device_failed", "timeout", "not_found", "unknown"}
+        if status not in allowed:
+            status = "unknown"
+        labels = {
+            "accepted": "已受理，等待发布或设备回执",
+            "published": "已发布，等待设备回执",
+            "publish_failed": "发布失败",
+            "device_succeeded": "设备回执成功",
+            "device_failed": "设备回执失败",
+            "timeout": "等待设备回执超时",
+            "not_found": "未找到该命令回执",
+            "unknown": "命令状态未知",
+        }
+        return CommandStatusResult(
+            ok=True,
+            summary=f"命令 {message_id}：{labels[status]}。",
+            data=CommandStatusData(
+                message_id=response.get("message_id", message_id),
+                status=status,
+                raw_status=response.get("raw_status"),
+                error_message=response.get("error_message"),
+                created_at=response.get("created_at"),
+                response=response.get("response"),
+            ),
+        )
+    except Exception as exc:
+        logger.error("查询命令回执出错: %s", exc.__class__.__name__)
+        return CommandStatusResult(ok=False, summary="查询命令回执时发生错误。",
+                                   error=make_error("request_failed", str(exc), "查询命令回执时发生错误。"))
+
+
+async def control_device_with_model_check(
+    device_id: str,
+    command_type: str,
+    command_data: Union[Dict[str, Any], str],
+) -> ModelCheckedControlResult:
+    """先读取物模型，再执行指定类型的设备控制。"""
+    model_type = {"telemetry": "telemetry", "attribute": "attributes", "command": "commands"}.get(command_type.lower())
     if not model_type:
-        return f"不支持的命令类型: {command_type}，请选择 'telemetry'、'attribute' 或 'command'"
-    
-    # 查询对应类型的物模型
-    model_info = await get_device_model_info(device_id, model_type=model_type)
-    
-    # 根据命令类型选择控制方法
-    control_result = ""
-    if command_type.lower() == 'telemetry':
-        control_result = await control_device_telemetry(device_id, command_data)
-    elif command_type.lower() == 'attribute':
-        control_result = await set_device_attributes(device_id, command_data)
-    elif command_type.lower() == 'command':
-        if isinstance(command_data, dict) and "method" in command_data:
-            control_result = await send_device_command(device_id, command_data)
+        return ModelCheckedControlResult(
+            ok=False,
+            summary="不支持的控制类型。",
+            error=make_error("invalid_command_type", "支持 telemetry、attribute、command。", "不支持的控制类型。"),
+        )
+
+    model_result = await get_device_model_info(device_id, model_type=model_type)
+    if not model_result.ok or model_result.data is None:
+        return ModelCheckedControlResult(
+            ok=False,
+            summary=model_result.summary,
+            error=model_result.error,
+        )
+
+    try:
+        if command_type.lower() == "telemetry":
+            operation_result = await control_device_telemetry(device_id, command_data)
+        elif command_type.lower() == "attribute":
+            operation_result = await set_device_attributes(device_id, command_data)
         else:
-            return f"命令数据格式错误，command类型必须包含method字段。请参考物模型调整命令格式。\n\n物模型信息:\n{model_info}"
-    
-    # 返回物模型信息和控制结果
-    return f"设备物模型信息:\n{model_info}\n\n控制结果:\n{control_result}" 
+            command = _parse_object(command_data, allow_pair=False)
+            if "method" not in command:
+                raise ValueError("command 类型必须包含 method 字段")
+            operation_result = await send_device_command(device_id, command)
+
+        data = ModelCheckedControlData(
+            device_id=device_id,
+            command_type=command_type.lower(),
+            model=model_result.data,
+            operation=operation_result.data,
+        )
+        return ModelCheckedControlResult(
+            ok=operation_result.ok,
+            summary=f"物模型校验完成。{operation_result.summary}",
+            data=data,
+            error=operation_result.error,
+        )
+    except ValueError as exc:
+        return ModelCheckedControlResult(
+            ok=False,
+            summary="控制参数格式错误。",
+            error=make_error("invalid_input", str(exc), "控制参数格式错误。"),
+        )

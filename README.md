@@ -6,17 +6,19 @@
 
 ThingsPanel MCP connects MCP-compatible assistants to ThingsPanel and ThingsVis APIs. It offers both focused IoT tools and individually named API tools with fixed, source-audited routes.
 
-[English](https://github.com/ThingsPanel/thingspanel-mcp/blob/codex/release-0.1.10/README.md) | [中文](https://github.com/ThingsPanel/thingspanel-mcp/blob/codex/release-0.1.10/README_CN.md)
+[English](https://github.com/ThingsPanel/thingspanel-mcp/blob/main/README.md) | [中文](https://github.com/ThingsPanel/thingspanel-mcp/blob/main/README_CN.md)
 
 ## What it includes
 
-- 376 MCP tools: 363 generated API tools plus 13 focused device, telemetry, dashboard, and control tools.
-- The generated set covers 311 ThingsPanel and 52 ThingsVis API operations, including device, telemetry, alarms, groups, products, service access, dashboards, and uploads.
-- 177 generated read operations. The remaining 186 write or control operations require the tool argument confirmed=true.
+- 378 MCP tools: 364 generated API tools plus 14 focused device, telemetry, dashboard, and control tools.
+- The generated set covers 312 ThingsPanel and 52 ThingsVis API operations, including device, telemetry, alarms, groups, products, service access, dashboards, and uploads.
+- 178 generated read operations. The remaining 186 write or control operations require the tool argument confirmed=true.
 - Structured JSON results, business-code error detection, path encoding, file upload support, and bounded SSE/WebSocket reads.
 - Authentication profiles for ThingsPanel and ThingsVis. Authorization is always enforced by the connected service.
 
 The complete allow-listed API inventory is in src/thingspanel_mcp/api_manifest.json. The tool definitions fix the HTTP method and route; callers provide path_params, query, body, and optional file_path values.
+
+The 14 focused tools return typed MCP `structuredContent` with `ok`, `summary`, `data`, and `error` fields. Use the data fields for programmatic decisions; `summary` is for people. `send_device_command` returns a `message_id` when available; pass it to `get_device_command_status` to query the command receipt. An accepted command is not proof that the device executed it.
 
 ## Requirements and installation
 
@@ -43,7 +45,7 @@ ThingsPanel Community supports SYS_ADMIN and TENANT_ADMIN. It does not have tena
 
 ThingsVis credentials are separate from ThingsPanel credentials. The ThingsVis SSO exchange uses the ThingsPanel JWT from the selected profile; ThingsVis validates that token server-to-server and derives the role from the verified identity. The MCP caller cannot submit a role or user identity to elevate access.
 
-Use a profile for each identity. The default profile is used when a tool does not specify profile. The 13 focused convenience tools use the default profile; the generated API tools accept an explicit profile argument.
+Use a profile for each identity. The default profile is used when a tool does not specify profile. The 14 focused convenience tools use the default profile; the generated API tools accept an explicit profile argument.
 
 Create ~/.thingspanel/config.json:
 
@@ -102,7 +104,7 @@ Add this to ~/.codex/config.toml:
 
     [mcp_servers.thingspanel]
     command = "uvx"
-    args = ["--from", "thingspanel-mcp==0.1.10", "thingspanel-mcp"]
+    args = ["--from", "thingspanel-mcp==0.1.11", "thingspanel-mcp"]
 
     [mcp_servers.thingspanel.env]
     THINGSPANEL_CONFIG_PATH = "/absolute/path/to/.thingspanel/config.json"
@@ -117,7 +119,7 @@ Add a server entry to claude_desktop_config.json:
       "mcpServers": {
         "thingspanel": {
           "command": "uvx",
-          "args": ["--from", "thingspanel-mcp==0.1.10", "thingspanel-mcp"],
+          "args": ["--from", "thingspanel-mcp==0.1.11", "thingspanel-mcp"],
           "env": {
             "THINGSPANEL_CONFIG_PATH": "/absolute/path/to/.thingspanel/config.json"
           }
@@ -134,7 +136,7 @@ For local stdio use, add a server entry to ~/.workbuddy/mcp.json:
         "thingspanel": {
           "type": "stdio",
           "command": "uvx",
-          "args": ["--from", "thingspanel-mcp==0.1.10", "thingspanel-mcp"],
+          "args": ["--from", "thingspanel-mcp==0.1.11", "thingspanel-mcp"],
           "env": {
             "THINGSPANEL_CONFIG_PATH": "/absolute/path/to/.thingspanel/config.json"
           }
