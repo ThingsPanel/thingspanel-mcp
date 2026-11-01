@@ -16,7 +16,7 @@
 | M10 存量聚焦设备/遥测/控制工具按实际 Encore 能力重做 | ⏳ | ⏳ | 已核对看板、遥测和属性：[接口审计](docs/encore-dashboard-telemetry-attribute-audit.md)。候选设备统计可用；最新遥测/属性及遥测历史、聚合工具已补，57 项本地测试通过；趋势、看板 CRUD 和属性写入缺少对应 Encore 契约，真实运行时和设备控制未测试 |
 | M11 MCP 工具输入输出、确认预览和契约生成 | ⏳ | ⏳ | 清单级请求映射已覆盖；字段级 schema、密钥预览和各类错误需完整验证 |
 | M12 STDIO、SSE/HTTP、打包安装和双语文档 | ⏳ | ⏳ | STDIO 握手、真实本地 HTTP 替身链路及开发版 wheel 构建通过；SSE/HTTP 宿主、安装后端到端仍待测 |
-| M13 全量回归、隔离 Encore 真服务联调 | ⏳ | ⚠️ | 本地全量 57 项通过（此前 Luna 独立回归 55 项通过）；真实 MCP STDIO 与本地 HTTP 替身链路通过；匿名本机网关物模型 401、原生设备 404。隔离 Encore 真服务被 PostgreSQL 镜像及 Go 依赖获取阻断，未进行认证 CRUD 联调 |
+| M13 全量回归、隔离 Encore 真服务联调 | ⏳ | ⚠️ | 本地全量 57 项通过（此前 Luna 独立回归 55 项通过）；真实 MCP STDIO 与本地 HTTP 替身链路通过；匿名本机网关物模型 401、原生设备 404。本轮已用本机 Timescale PG14 镜像启动独立回环数据库并清理；候选 `d4e0540b` 以普通副本和独立 encore-api 源码构建，含 `--services devicemetadata,authn --os linux --arch arm64` 的尝试均报 Encore CLI 1.58.6 E0003：生成的 `encore_internal/main` 目录未找到，未启动服务或进行认证 CRUD 联调 |
 | M14 发布与升级验收 | ⬜ | ⬜ | 验证现有工具兼容变化、部署路由、权限和真实设备运行链，不把源码或模拟测试视为发布 |
 
 Northbound 的 20 个用户接口因发行镜像未包含该服务而默认关闭，确认部署后才设置 `THINGSPANEL_ENABLE_NORTHBOUND=1`。内部 ingress、跨租户全局 backlog、迁移运维和旧兼容接口未当作普通用户工具暴露。
