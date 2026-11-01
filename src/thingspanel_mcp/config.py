@@ -12,6 +12,7 @@ class Config:
     def __init__(self):
         self.base_url = "http://demo.thingspanel.cn"
         self.api_prefix = "/api/v1"
+        self.encore_base_url = ""
         self.thingsvis_base_url = "http://localhost:8000"
         self.thingsvis_api_prefix = "/api/v1"
         self.profiles: Dict[str, Dict[str, Optional[str]]] = {}
@@ -61,6 +62,11 @@ class Config:
             os.environ.get("THINGSPANEL_BASE_URL")
             or config_data.get("base_url")
             or "http://demo.thingspanel.cn"
+        ).rstrip("/")
+        self.encore_base_url = (
+            os.environ.get("THINGSPANEL_ENCORE_BASE_URL")
+            or config_data.get("encore_base_url")
+            or ""
         ).rstrip("/")
         self.api_prefix = (
             os.environ.get("THINGSPANEL_API_PREFIX")

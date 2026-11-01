@@ -8,9 +8,10 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 # 导出主要类和函数
 __all__ = ['ThingsPanelServer', 'config']
 
 # 版本信息
-__version__ = '0.1.11'
+__version__ = '0.2.0.dev0'

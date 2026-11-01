@@ -4,6 +4,7 @@ import logging
 import json
 import re
 import asyncio
+import ipaddress
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Union
 from .config import config
@@ -48,6 +49,9 @@ class ThingsPanelClient:
         stream: Optional[str] = None,
         stream_messages: int = 5,
         stream_seconds: float = 5.0,
+        idempotency_key: Optional[str] = None,
+        if_match: Optional[str] = None,
+        outcome_sensitive: bool = False,
     ) -> Any:
         """Call one allow-listed ThingsPanel or ThingsVis API operation.
 
@@ -64,6 +68,25 @@ class ThingsPanelClient:
                 self.api_key if profile == "default" else None
             )
             internal_secret = None
+        elif service == "encore":
+            base_url = config.encore_base_url
+            api_prefix = "/api/v1"
+            token = credentials.get("thingspanel_token")
+            api_key = None
+            internal_secret = None
+            if not token:
+                raise KeyError(f"profile {profile} 缺少 Encore 用户令牌")
+            if not base_url:
+                raise ValueError("请明确配置 THINGSPANEL_ENCORE_BASE_URL")
+            from urllib.parse import urlsplit
+            target = urlsplit(base_url)
+            try:
+                is_loopback = target.hostname == "localhost" or ipaddress.ip_address(target.hostname or "").is_loopback
+            except ValueError:
+                is_loopback = False
+            if (target.scheme not in ("http", "https") or not target.hostname or target.username or target.password
+                    or target.query or target.fragment or (target.scheme == "http" and not is_loopback)):
+                raise ValueError("Encore 地址必须是 HTTPS，只有本机回环地址可使用 HTTP")
         elif service == "thingsvis":
             base_url = config.thingsvis_base_url
             api_prefix = config.thingsvis_api_prefix
@@ -96,6 +119,8 @@ class ThingsPanelClient:
             key = match.group(1) or match.group(2)
             if key not in params:
                 raise ValueError(f"缺少路径参数: {key}")
+            if service == "encore" and (str(params[key]) in ("", ".", "..") or any(c in str(params[key]) for c in "/?#%")):
+                raise ValueError(f"路径参数无效: {key}")
             from urllib.parse import quote
             return quote(str(params[key]), safe="")
 
@@ -116,6 +141,11 @@ class ThingsPanelClient:
                 headers["x-api-key"] = api_key
             if internal_secret:
                 headers["x-internal-token"] = internal_secret
+
+        if idempotency_key:
+            headers["Idempotency-Key"] = idempotency_key
+        if if_match:
+            headers["If-Match"] = if_match
 
         if stream == "sse":
             return await self._request_sse(url, headers, query, stream_messages, stream_seconds)
@@ -146,15 +176,26 @@ class ThingsPanelClient:
             if service == "thingspanel" and new_token and token:
                 config.profiles[profile]["thingspanel_token"] = new_token
 
-            if response.status_code >= 400:
+            if response.status_code >= 300:
+                if service == "encore" and outcome_sensitive and (response.status_code >= 500 or response.status_code < 400):
+                    return {"ok": False, "status": response.status_code,
+                            "error": {"type": "outcome_unknown", "message": "写请求结果未知，请先查询；仅在接口保证幂等时用原键重试"}}
                 try:
                     error_body = response.json()
                 except ValueError:
-                    error_body = {"message": response.text[:2000]}
+                    error_body = {"message": "服务返回非 JSON 错误"} if service == "encore" else {"message": response.text[:2000]}
+                if service == "encore":
+                    if isinstance(error_body, dict):
+                        error_body = {k: error_body[k] for k in ("code", "message", "detail", "title", "requestId", "fields") if k in error_body}
+                    else:
+                        error_body = {"message": "服务返回错误"}
                 return {"ok": False, "status": response.status_code, "error": error_body}
 
             if not response.content:
-                return {"ok": True, "status": response.status_code, "data": None}
+                result = {"ok": True, "status": response.status_code, "data": None}
+                if response.headers.get("ETag"):
+                    result["etag"] = response.headers["ETag"]
+                return result
             try:
                 data = response.json()
             except ValueError:
@@ -172,9 +213,14 @@ class ThingsPanelClient:
                     if "data" in data:
                         result["data"] = data["data"]
                     return result
-            return {"ok": True, "status": response.status_code, "data": data}
+            result = {"ok": True, "status": response.status_code, "data": data}
+            if response.headers.get("ETag"):
+                result["etag"] = response.headers["ETag"]
+            return result
         except (httpx.TimeoutException, httpx.RequestError) as exc:
             logger.warning("API request failed (%s) for %s %s", exc.__class__.__name__, method, endpoint)
+            if service == "encore" and outcome_sensitive:
+                return {"ok": False, "error": {"type": "outcome_unknown", "message": "写请求未收到响应，请先查询结果；仅在接口保证幂等时使用原幂等键重试"}}
             return {"ok": False, "error": {"type": exc.__class__.__name__, "message": "API请求失败或超时"}}
 
     async def _request_sse(self, url, headers, query, max_messages, max_seconds):

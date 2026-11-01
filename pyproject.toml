@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "thingspanel-mcp"
-version = "0.1.11"
+version = "0.2.0.dev0"
 description = "MCP server for ThingsPanel IoT platform"
 readme = "README.md"
 authors = [
@@ -36,4 +36,4 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-thingspanel_mcp = ["api_manifest.json"]
+thingspanel_mcp = ["api_manifest.json", "encore_manifest.json"]

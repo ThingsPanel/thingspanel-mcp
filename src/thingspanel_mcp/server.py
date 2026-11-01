@@ -7,7 +7,9 @@ from mcp.server.fastmcp import FastMCP, Context
 from .config import config
 from .tools import device_tools, telemetry_tools, dashboard_tools, control_tools
 from .prompts import common_prompts
-from .api_tools import register_api_tools
+from .api_tools import register_api_tools, load_encore_manifest
+from .encore_focused_tools import register_encore_focused_tools
+from .encore_asset_tools import register_encore_asset_tools
 
 logger = logging.getLogger(__name__)
 
@@ -21,40 +23,20 @@ class ThingsPanelServer:
         self._setup_prompts()
         
     def _setup_tools(self):
-        """设置服务器工具"""
-        # 设备相关工具
-        self.server.tool(structured_output=True)(device_tools.list_devices)
-        self.server.tool(structured_output=True)(device_tools.get_device_detail)
-        self.server.tool(structured_output=True)(device_tools.check_device_status)
-        
-        # 遥测数据相关工具
-        self.server.tool(structured_output=True)(telemetry_tools.get_device_telemetry)
-        self.server.tool(structured_output=True)(telemetry_tools.get_telemetry_by_key)
-        self.server.tool(structured_output=True)(telemetry_tools.get_telemetry_history)
-        
-        # 看板相关工具
-        self.server.tool(structured_output=True)(dashboard_tools.get_tenant_summary)
-        self.server.tool(structured_output=True)(dashboard_tools.get_device_trend_report)
-        
-        # 设备控制相关工具
-        self.server.tool(structured_output=True)(control_tools.get_device_model_info)
-        self.server.tool(structured_output=True)(control_tools.control_device_telemetry)
-        self.server.tool(structured_output=True)(control_tools.set_device_attributes)
-        self.server.tool(structured_output=True)(control_tools.send_device_command)
-        self.server.tool(structured_output=True)(control_tools.get_device_command_status)
-        self.server.tool(structured_output=True)(control_tools.control_device_with_model_check)
-
-        # 为源码清单中的每个 API 操作注册独立的 allow-listed MCP tool。
-        self.api_tool_count = register_api_tools(self.server)
+        """只注册明确核对过的 Encore 接口；不自动回退旧路由。"""
+        native = os.environ.get("THINGSPANEL_ENABLE_NATIVE_METADATA") == "1"
+        self.focused_tool_count = register_encore_focused_tools(self.server, include_native=native)
+        self.api_tool_count = register_api_tools(self.server, manifest=load_encore_manifest())
+        self.asset_tool_count = register_encore_asset_tools(self.server) if native else 0
         
     def _setup_prompts(self):
         """设置预定义提示"""
         # 添加常用提示
-        self.server.prompt()(self._welcome_prompt)
-        self.server.prompt()(self._device_query_prompt)
-        self.server.prompt()(self._telemetry_query_prompt)
-        self.server.prompt()(self._device_control_prompt)
-        self.server.prompt()(self._dashboard_prompt)
+        self.server.prompt()(self._encore_prompt)
+
+    async def _encore_prompt(self) -> str:
+        """介绍已核对的 Encore 工具和版本依赖。"""
+        return "使用 tools/list 查看当前可用的 Encore 工具。设备原生功能仅在服务端部署候选版本并明确启用时可用；写入前确认用户意图，失败或结果未知时不要猜测成功。"
         
     async def _welcome_prompt(self) -> List[Dict[str, Any]]:
         """欢迎提示"""
@@ -78,8 +60,8 @@ class ThingsPanelServer:
         
     def check_configuration(self) -> bool:
         """检查配置是否完整"""
-        if not config.is_configured():
-            logger.warning("未配置ThingsPanel或ThingsVis API认证信息，服务无法访问受保护的API")
+        if not config.encore_base_url or not any(p.get("thingspanel_token") for p in config.profiles.values()):
+            logger.warning("需要明确配置 Encore 地址及用户令牌")
             return False
         return True
         
@@ -90,11 +72,7 @@ class ThingsPanelServer:
         config.load_config()
         
         if not self.check_configuration():
-            logger.error("配置不完整，服务器启动失败")
-            print("配置不完整，服务器启动失败。请配置 ThingsPanel Token/API Key 或 ThingsVis Token。")
-            print("您可以通过以下方式配置API密钥：")
-            print("1. 设置环境变量 THINGSPANEL_TOKEN 或 THINGSPANEL_API_KEY")
-            print("2. 创建 ~/.thingspanel/config.json，在 profiles 中分别配置超管和租户管理员的 token")
+            logger.error("配置不完整：请设置 THINGSPANEL_ENCORE_BASE_URL 与 THINGSPANEL_TOKEN")
             return
         
         logger.info(f"ThingsPanel MCP 服务器启动，使用 {transport} 传输")
