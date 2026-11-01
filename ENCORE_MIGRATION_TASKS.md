@@ -16,7 +16,7 @@
 | M10 存量聚焦设备/遥测/控制工具按实际 Encore 能力重做 | ⏳ | ⏳ | 已核对看板、遥测和属性：[接口审计](docs/encore-dashboard-telemetry-attribute-audit.md)。候选设备统计可用；最新遥测/属性及遥测历史、聚合工具已补，57 项本地测试通过；趋势、看板 CRUD 和属性写入缺少对应 Encore 契约，真实运行时和设备控制未测试 |
 | M11 MCP 工具输入输出、确认预览和契约生成 | ⏳ | ⏳ | 清单级请求映射已覆盖；字段级 schema、密钥预览和各类错误需完整验证 |
 | M12 STDIO、SSE/HTTP、打包安装和双语文档 | ⏳ | ⏳ | STDIO 握手、真实本地 HTTP 替身链路及开发版 wheel 构建通过；SSE/HTTP 宿主、安装后端到端仍待测 |
-| M13 全量回归、隔离 Encore 真服务联调 | ⏳ | ⚠️ | 本地全量 57 项通过（此前 Luna 独立回归 55 项通过）；真实 MCP STDIO 与本地 HTTP 替身链路通过；匿名本机网关物模型 401、原生设备 404。本轮已用本机 Timescale PG14 镜像启动独立回环数据库并清理；候选 `d4e0540b` 以普通副本和独立 encore-api 源码构建，含 `--services devicemetadata,authn --os linux --arch arm64` 的尝试均报 Encore CLI 1.58.6 E0003：生成的 `encore_internal/main` 目录未找到，未启动服务或进行认证 CRUD 联调 |
+| M13 全量回归、隔离 Encore 真服务联调 | ⏳ | ⏳ | Luna 独立本地 57 项通过；隔离 Encore 候选 `d4e0540b` + PostgreSQL + 合成 JWT/会话替身：CLI 与 MCP 设备列表 200；CLI 分组创建、同键重放、读取、ETag 更新、旧 ETag 412、删除后 404，MCP 读回更新均通过。通知初始化使用测试替身；真实 Community、遥测/属性数据、跨租户及 MCP 写入仍待验收 |
 | M14 发布与升级验收 | ⬜ | ⬜ | 验证现有工具兼容变化、部署路由、权限和真实设备运行链，不把源码或模拟测试视为发布 |
 
 Northbound 的 20 个用户接口因发行镜像未包含该服务而默认关闭，确认部署后才设置 `THINGSPANEL_ENABLE_NORTHBOUND=1`。内部 ingress、跨租户全局 backlog、迁移运维和旧兼容接口未当作普通用户工具暴露。
@@ -24,3 +24,9 @@ Northbound 的 20 个用户接口因发行镜像未包含该服务而默认关�
 ## 验证原则
 
 每项测试包括正常、输入错误、身份/租户越权、服务失败及结果未知；适用时覆盖强 ETag 冲突和同键重试。生产路径不引入旧 API 回退，不根据未知运行状态推断设备离线。文件和凭据不写入日志；只读或失败证据与真实设备控制、部署、最终验收分开记录。
+
+## 2026-11-01 隔离联调证据
+
+在单独容器、网络和全新数据库中运行 Encore 候选；运行配置使用合成 HS256 JWT 和本机会话替身，notification 初始化在临时源码副本中替身化，非完整生产部署。未认证设备读取 401；CLI `native-devices list` 和 MCP STDIO `encore_list_devices` 均 200。CLI 创建无成员测试分组后，相同幂等键和请求体重放返回原分组与原请求 ID；读取保存 ETag，更新版本 1→2，旧 ETag 更新得到 412 / CLI 退出码 6；MCP `encore_group_get` 读到更新，CLI 用最新 ETag 删除后 GET 404。容器、测试卷、网络和合成凭据已清理，未控制真实设备。
+
+构建问题：`/tmp` 与 `/private/tmp` 路径别名导致 Encore 生成文件 overlay 无法匹配；在无别名路径的临时源码副本中创建空 `encore_internal/main` 目录后编译通过。另因 `curl.se` 证书下载 EOF，使用本轮刚编译的程序与本机现有 Encore 测试基础镜像打包。该方法只是隔离联调，不证明正式发行镜像流程。未完成真实 Community/遥测数据、属性写入、看板趋势、跨租户和完整 MCP 写接口验收。
