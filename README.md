@@ -1,5 +1,7 @@
 # ThingsPanel MCP: Encore migration development build
 
+Requires Python 3.10 or newer.
+
 This branch is an unreleased `0.2.0.dev0` candidate. It registers source-verified Encore tools; the 0.1.11 legacy route tools are not registered by default. See [migration tasks](ENCORE_MIGRATION_TASKS.md) for development and test status, and [中文说明](README_CN.md) for detailed usage.
 
 ```bash

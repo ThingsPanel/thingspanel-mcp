@@ -4,6 +4,8 @@
 
 ## 安装与配置
 
+需要 Python 3.10 或更高版本。
+
 ```bash
 python3 -m pip install -e .
 export THINGSPANEL_ENCORE_BASE_URL=https://your-thingspanel-entry

@@ -29,6 +29,7 @@ def test_candidate_requires_explicit_enablement(monkeypatch):
     names = {tool.name for tool in ThingsPanelServer().server._tool_manager.list_tools()}
     assert "encore_device_list" in names and "encore_list_devices" in names
     assert "encore_upload_template_image" in names and "encore_download_metadata_artifact" in names
+    assert "send_native_device_command" in names and "get_native_command_receipt" in names
 
 
 def test_northbound_tools_require_explicit_deployment_opt_in(monkeypatch):

@@ -10,6 +10,7 @@ from .prompts import common_prompts
 from .api_tools import register_api_tools, load_encore_manifest
 from .encore_focused_tools import register_encore_focused_tools
 from .encore_asset_tools import register_encore_asset_tools
+from .encore_control_tools import register_encore_control_tools
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ class ThingsPanelServer:
         self.focused_tool_count = register_encore_focused_tools(self.server, include_native=native)
         self.api_tool_count = register_api_tools(self.server, manifest=load_encore_manifest())
         self.asset_tool_count = register_encore_asset_tools(self.server) if native else 0
+        self.control_tool_count = register_encore_control_tools(self.server) if native else 0
         
     def _setup_prompts(self):
         """设置预定义提示"""
