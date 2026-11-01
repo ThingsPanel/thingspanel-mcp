@@ -62,14 +62,24 @@ def register_encore_focused_tools(server: FastMCP, client: Optional[ThingsPanelC
 
     async def encore_list_device_readings(device_id: str, page: int = 1, page_size: int = 20,
                                           kind: str = "telemetry", identifier: Optional[str] = None,
+                                          from_time: Optional[str] = None, to_time: Optional[str] = None,
+                                          aggregation: str = "raw", window: Optional[str] = None,
                                           profile: str = "default") -> Dict[str, Any]:
-        """分页读取原生遥测、属性或事件；需设备元数据候选及可用的运行时。"""
+        """读取当前遥测、属性或事件；遥测历史使用 RFC3339 起止时间及可选聚合窗口。需设备元数据候选及可用的运行时。"""
         query = pagination(page, page_size, 100)
         if query is None: return invalid_page()
         if kind not in ("telemetry", "attribute", "event"):
             return {"ok": False, "summary": "读数类型无效。", "error": {"type": "invalid_kind"}}
         query["kind"] = kind
         if identifier is not None: query["identifier"] = identifier
+        historical = from_time is not None or to_time is not None or aggregation != "raw" or window is not None
+        if historical:
+            if kind != "telemetry" or not identifier or not from_time or not to_time:
+                return {"ok": False, "summary": "遥测历史需要标识和起止时间。", "error": {"type": "invalid_history_query"}}
+            query.update({"from": from_time, "to": to_time, "aggregation": aggregation})
+            if window is not None: query["window"] = window
+        elif kind in ("telemetry", "attribute"):
+            query["latestOnly"] = "true"
         return await read("/api/v2/devices/:deviceID/readings", "已读取设备读数。", path_params={"deviceID": device_id}, query=query, profile=profile)
 
     async def encore_list_thing_models(page: int = 1, page_size: int = 20,

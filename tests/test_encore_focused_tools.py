@@ -40,7 +40,7 @@ def test_reading_query_and_validations():
     assert result["ok"] is True
     assert client.calls[-1]["endpoint"] == "/api/v2/devices/:deviceID/readings"
     assert client.calls[-1]["path_params"] == {"deviceID": "d1"}
-    assert client.calls[-1]["query"] == {"page": 1, "pageSize": 50, "kind": "attribute", "identifier": "voltage"}
+    assert client.calls[-1]["query"] == {"page": 1, "pageSize": 50, "kind": "attribute", "identifier": "voltage", "latestOnly": "true"}
     for name, args in [("encore_list_devices", {"page": 0}), ("encore_list_devices", {"page_size": 101}), ("encore_list_device_readings", {"device_id": "d1", "kind": "unknown"}), ("encore_get_thing_model_version", {"model_id": "m1", "revision": 0})]:
         assert call(m, name, args)["ok"] is False
     assert len(client.calls) == 1
@@ -74,3 +74,22 @@ def test_unavailable_client_exception_does_not_leak_credentials():
     result = call(manager(Broken()), "encore_get_device", {"device_id": "d1"})
     assert result["ok"] is False
     assert "secret-token-must-not-appear" not in str(result)
+
+
+def test_telemetry_history_passes_native_contract_and_rejects_invalid_shape():
+    client = Recorder()
+    m = manager(client)
+    args = {"device_id": "d1", "identifier": "temperature", "from_time": "2026-01-01T00:00:00Z", "to_time": "2026-01-01T01:00:00Z", "aggregation": "avg", "window": "5m"}
+    assert call(m, "encore_list_device_readings", args)["ok"]
+    assert client.calls[-1]["query"] == {"page": 1, "pageSize": 20, "kind": "telemetry", "identifier": "temperature", "from": args["from_time"], "to": args["to_time"], "aggregation": "avg", "window": "5m"}
+    assert not call(m, "encore_list_device_readings", {**args, "kind": "attribute"})["ok"]
+    assert len(client.calls) == 1
+
+
+def test_latest_telemetry_and_events_use_distinct_query_modes():
+    client = Recorder()
+    m = manager(client)
+    assert call(m, "encore_list_device_readings", {"device_id": "d1"})["ok"]
+    assert client.calls[-1]["query"]["latestOnly"] == "true"
+    assert call(m, "encore_list_device_readings", {"device_id": "d1", "kind": "event"})["ok"]
+    assert "latestOnly" not in client.calls[-1]["query"]
